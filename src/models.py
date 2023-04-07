@@ -285,10 +285,7 @@ def CPLEX_CP_solve(
             if problemType != "Parallelmachine":
                 for j in range(instance.n):
                     Allc.write("\n")
-                    if problemType == "Flexiblejobshop":
-                        q = instance.o[j]
-                    else:
-                        q = instance.g
+                    q = instance.g
                     if problemType != "Parallelmachine":
                         for i in range(q):
                             var = msol.get_var_solution("T_{}_{}".format(j, i))

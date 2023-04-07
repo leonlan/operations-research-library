@@ -5,10 +5,6 @@ from docplex.cp.model import *
 def CPmodel_generation(instance, mdl, problemType):
     if problemType == "Flowshop":
         mdl = flowshopmodel(instance, mdl)
-    if problemType == "Non-Flowshop":
-        mdl = Nonflowshopmodel(instance, mdl)
-    if problemType == "Hybridflowshop":
-        mdl = Hybridflowshopmodel(instance, mdl)
     if problemType == "Distributedflowshop":
         mdl = Distributedflowshopmodel(instance, mdl)
     if problemType == "Nowaitflowshop":
@@ -19,12 +15,6 @@ def CPmodel_generation(instance, mdl, problemType):
         mdl = Tardinessflowshopmodel(instance, mdl)
     if problemType == "TCTflowshop":
         mdl = TCTflowshopmodel(instance, mdl)
-    if problemType == "Jobshop":
-        mdl = jobshopmodel(instance, mdl)
-    if problemType == "Flexiblejobshop":
-        mdl = Flexiblejobshopmodel(instance, mdl)
-    if problemType == "Openshop":
-        mdl = openshopmodel(instance, mdl)
     if problemType == "Parallelmachine":
         mdl = prallelmachinemodel(instance, mdl)
     return mdl
@@ -211,79 +201,6 @@ def Setupflowshopmodel(instance, mdl):
     return mdl
 
 
-def Flexiblejobshopmodel(instance, mdl):
-    tasks = [[]] * instance.n
-    for j in range(instance.n):
-        tasks[j] = [[]] * instance.o[j]
-
-    for j in range(instance.n):
-        for k in range(instance.o[j]):
-            tasks[j][k] = [
-                mdl.interval_var(
-                    name="A_{}_{}_{}".format(j, k, i),
-                    optional=True,
-                    size=instance.p[j][k][i],
-                )
-                for i in range(instance.g)
-            ]  # interval variable
-
-    _tasks = [[]] * instance.n
-    for j in range(instance.n):
-        _tasks[j] = [
-            mdl.interval_var(name="T_{}_{}".format(j, k))
-            for k in range(instance.o[j])
-        ]
-    for j in range(instance.n):
-        for k in range(instance.o[j]):
-            mdl.add(
-                mdl.alternative(
-                    _tasks[j][k],
-                    [
-                        tasks[j][k][i]
-                        for i in range(instance.g)
-                        if instance.p[j][k][i] > 0
-                    ],
-                )
-            )
-
-    for i in range(instance.g):
-        go = 0
-        for j in range(instance.n):
-            for k in range(instance.o[j]):
-                if instance.p[j][k][i] > 0:
-                    go = 1
-        if go == 1:
-            mdl.add(
-                mdl.no_overlap(
-                    [
-                        tasks[j][k][i]
-                        for j in range(instance.n)
-                        for k in range(instance.o[j])
-                        if instance.p[j][k][i] > 0
-                    ]
-                )
-            )  # no overlap machines
-
-    for j in range(instance.n):
-        for k in range(1, instance.o[j]):
-            mdl.add(
-                mdl.end_before_start(_tasks[j][k - 1], _tasks[j][k])
-            )  # no overlap jobs
-
-    mdl.add(
-        mdl.minimize(
-            mdl.max(
-                [
-                    mdl.end_of(_tasks[j][instance.o[j] - 1])
-                    for j in range(instance.n)
-                ]
-            )
-        )
-    )  # this is makespan
-
-    return mdl
-
-
 def Tardinessflowshopmodel(instance, mdl):
     tasks = [[]] * instance.n
     for j in range(instance.n):
@@ -385,72 +302,6 @@ def Nowaitflowshopmodel(instance, mdl):
     return mdl
 
 
-def Hybridflowshopmodel(instance, mdl):
-    """
-    tasks = [[]] * instance.n
-    for j in range(instance.n):
-        tasks[j] = [[]] * instance.g
-
-    for j in range(instance.n):
-        for i in range(instance.g):
-            tasks[j][i] = [mdl.interval_var(name="A_{}_{}_{}".format(j,i,k), optional=True, size=instance.p[j][i]) for k in range(instance.m[i])]  #interval variable
-
-    _tasks = [[]] * instance.n
-    for j in range(instance.n):
-        _tasks[j] = [mdl.interval_var(name="T_{}_{}".format(j,i)) for i in range(instance.g)]
-    for j in range(instance.n):
-        for i in range(instance.g):
-            mdl.add(mdl.alternative(_tasks[j][i], [tasks[j][i][k] for k in range(instance.m[i])]))
-
-    for i in range(instance.g):
-        for k in range(instance.m[i]):
-            mdl.add(mdl.no_overlap( [tasks[j][i][k] for j in range(instance.n)]))     #no overlap machines
-
-    for j in range(instance.n):
-        for i in range(1,instance.g):
-            mdl.add(mdl.end_before_start(_tasks[j][i-1],_tasks[j][i]))     #no overlap jobs
-
-    mdl.add(mdl.minimize( mdl.max([ mdl.end_of(_tasks[j][instance.g-1]) for j in range(instance.n) ]) ))   #this is makespan
-
-    return mdl
-    """
-
-    tasks = [[]] * instance.n
-    for j in range(instance.n):
-        tasks[j] = [[]] * instance.g
-
-    for j in range(instance.n):
-        for i in range(instance.g):
-            tasks[j][i] = mdl.interval_var(
-                name="T_{}_{}".format(j, i), size=instance.p[j][i]
-            )  # interval variable
-
-    for i in range(instance.g):
-        mdl.add(
-            mdl.sum([mdl.pulse(tasks[j][i], 1) for j in range(instance.n)])
-            <= instance.m[i]
-        )  # no overlap machines
-
-    for j in range(instance.n):
-        for i in range(1, instance.g):
-            mdl.add(
-                mdl.end_before_start(tasks[j][i - 1], tasks[j][i])
-            )  # no overlap jobs
-
-    mdl.add(
-        mdl.minimize(
-            mdl.max(
-                [
-                    mdl.end_of(tasks[j][instance.g - 1])
-                    for j in range(instance.n)
-                ]
-            )
-        )
-    )  # this is makespan
-
-    return mdl
-
-
 def flowshopmodel(instance, mdl):
     tasks = [[]] * instance.n
     for j in range(instance.n):
@@ -488,118 +339,6 @@ def flowshopmodel(instance, mdl):
                 [
                     mdl.end_of(tasks[j][instance.g - 1])
                     for j in range(instance.n)
-                ]
-            )
-        )
-    )  # this is makespan
-
-    return mdl
-
-
-def Nonflowshopmodel(instance, mdl):
-    tasks = [[]] * instance.n
-    for j in range(instance.n):
-        tasks[j] = [[]] * instance.g
-
-    for j in range(instance.n):
-        for i in range(instance.g):
-            tasks[j][i] = mdl.interval_var(
-                name="T_{}_{}".format(j, i), size=instance.p[j][i]
-            )  # interval variable
-
-    for i in range(instance.g):
-        mdl.add(
-            mdl.no_overlap([tasks[j][i] for j in range(instance.n)])
-        )  # no overlap machines
-
-    for j in range(instance.n):
-        for i in range(1, instance.g):
-            mdl.add(
-                mdl.end_before_start(tasks[j][i - 1], tasks[j][i])
-            )  # no overlap jobs
-
-    mdl.add(
-        mdl.minimize(
-            mdl.max(
-                [
-                    mdl.end_of(tasks[j][instance.g - 1])
-                    for j in range(instance.n)
-                ]
-            )
-        )
-    )  # this is makespan
-
-    return mdl
-
-
-def jobshopmodel(instance, mdl):
-    tasks = [[]] * instance.n
-    for j in range(instance.n):
-        tasks[j] = [[]] * instance.g
-
-    for j in range(instance.n):
-        for i in range(instance.g):
-            tasks[j][i] = mdl.interval_var(
-                name="T_{}_{}".format(j, i),
-                size=instance.p[j][instance.r[j].index(i + 1)],
-            )  # interval variable
-
-    for i in range(instance.g):
-        mdl.add(
-            mdl.no_overlap([tasks[j][i] for j in range(instance.n)])
-        )  # no overlap machines
-
-    for j in range(instance.n):
-        for i in range(1, instance.g):
-            mdl.add(
-                mdl.end_before_start(
-                    tasks[j][instance.r[j][i - 1] - 1],
-                    tasks[j][instance.r[j][i] - 1],
-                )
-            )  # no overlap jobs
-
-    mdl.add(
-        mdl.minimize(
-            mdl.max(
-                [
-                    mdl.end_of(tasks[j][instance.r[j][instance.g - 1] - 1])
-                    for j in range(instance.n)
-                ]
-            )
-        )
-    )  # this is makespan
-
-    return mdl
-
-
-def openshopmodel(instance, mdl):
-    tasks = [[]] * instance.n
-    for j in range(instance.n):
-        tasks[j] = [[]] * instance.g
-
-    for j in range(instance.n):
-        for i in range(instance.g):
-            tasks[j][i] = mdl.interval_var(
-                name="T_{}_{}".format(j, i), size=instance.p[j][i]
-            )  # interval variable
-
-    for i in range(instance.g):
-        mdl.add(
-            mdl.no_overlap([tasks[j][i] for j in range(instance.n)])
-        )  # no overlap machines
-
-    for j in range(instance.n):
-        mdl.add(
-            mdl.no_overlap([tasks[j][i] for i in range(instance.g)])
-        )  # no overlap jobs
-
-    mdl.add(
-        mdl.minimize(
-            mdl.max(
-                [
-                    mdl.end_of(tasks[j][i])
-                    for j in range(instance.n)
-                    for i in range(instance.g)
                 ]
             )
         )
