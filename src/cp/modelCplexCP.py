@@ -8,19 +8,19 @@ from src.cp.TCTflowshopmodel import TCTflowshopmodel
 
 
 ###### main ########
-def CPmodel_generation(instance, mdl, problemType):
+def CPmodel_generation(data, mdl, problemType):
     if problemType == "Flowshop":
-        mdl = flowshopmodel(instance, mdl)
+        mdl = flowshopmodel(data, mdl)
     if problemType == "Distributedflowshop":
-        mdl = Distributedflowshopmodel(instance, mdl)
+        mdl = Distributedflowshopmodel(data, mdl)
     if problemType == "Nowaitflowshop":
-        mdl = Nowaitflowshopmodel(instance, mdl)
+        mdl = Nowaitflowshopmodel(data, mdl)
     if problemType == "Setupflowshop":
-        mdl = Setupflowshopmodel(instance, mdl)
+        mdl = Setupflowshopmodel(data, mdl)
     if problemType == "Tardinessflowshop":
-        mdl = Tardinessflowshopmodel(instance, mdl)
+        mdl = Tardinessflowshopmodel(data, mdl)
     if problemType == "TCTflowshop":
-        mdl = TCTflowshopmodel(instance, mdl)
+        mdl = TCTflowshopmodel(data, mdl)
     if problemType == "Parallelmachine":
-        mdl = parallelmachinemodel(instance, mdl)
+        mdl = parallelmachinemodel(data, mdl)
     return mdl

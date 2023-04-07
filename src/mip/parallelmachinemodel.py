@@ -1,12 +1,10 @@
 from .constants import V
 
 
-def parallelmachinemodel(instance, mdl):
+def parallelmachinemodel(data, mdl):
     # Variable Y
     names = [
-        "Y_{}_{}".format(j, i)
-        for j in range(instance.n)
-        for i in range(instance.g)
+        "Y_{}_{}".format(j, i) for j in range(data.n) for i in range(data.g)
     ]
     objective = [0] * len(names)
     lower_bounds = [0] * len(names)
@@ -25,19 +23,19 @@ def parallelmachinemodel(instance, mdl):
     rhs = []
 
     # constarint 1
-    for j in range(instance.n):
-        variables = ["Y_{}_{}".format(j, i) for i in range(instance.g)]
-        coffiecient = [1] * instance.g
+    for j in range(data.n):
+        variables = ["Y_{}_{}".format(j, i) for i in range(data.g)]
+        coffiecient = [1] * data.g
         constraints.append([variables, coffiecient])
         senses.append("E")
         rhs.append(1)
 
     # constarint 2
-    for i in range(instance.g):
+    for i in range(data.g):
         variables = ["C_max"]
         coffiecient = [1]
-        variables += ["Y_{}_{}".format(j, i) for j in range(instance.n)]
-        coffiecient += [-1 * instance.p[j][i] for j in range(instance.n)]
+        variables += ["Y_{}_{}".format(j, i) for j in range(data.n)]
+        coffiecient += [-1 * data.p[j][i] for j in range(data.n)]
         constraints.append([variables, coffiecient])
         senses.append("G")
         rhs.append(0)

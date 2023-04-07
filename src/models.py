@@ -6,8 +6,8 @@ import docplex.cp.model as docp
 import gurobipy as grb
 import numpy as np
 from cp.modelCplexCP import CPmodel_generation
-from Instance import Instance
 from mip.modelCplexMIP import MIPmodel_generation
+from ProblemData import ProblemData
 
 
 def main(
@@ -19,7 +19,7 @@ def main(
     NThreads,
     output,
 ):
-    instance = Instance.from_file(path, problemType)
+    data = ProblemData.from_file(path, problemType)
     name = path.stem
 
     time_start = time.perf_counter()
@@ -27,7 +27,7 @@ def main(
     if modelType == "mip":
         if solver == "cplex":
             model = cplex.Cplex()
-            model = MIPmodel_generation(instance, model, problemType)
+            model = MIPmodel_generation(data, model, problemType)
             x, y = CPLEX_MIP_solve(
                 model,
                 problemType,
@@ -38,7 +38,7 @@ def main(
             )
         if solver == "gurobi":
             model = cplex.Cplex()
-            model = MIPmodel_generation(instance, model, problemType)
+            model = MIPmodel_generation(data, model, problemType)
             model.write("model.lp")
             model = grb.read("model.lp")
             x, y = Gurobi_solve(
@@ -53,14 +53,14 @@ def main(
     if modelType == "cp":
         if solver == "cplex":
             model = docp.CpoModel()
-            model = CPmodel_generation(instance, model, problemType)
+            model = CPmodel_generation(data, model, problemType)
             x, y = CPLEX_CP_solve(
                 model,
                 problemType,
                 name,
                 time_limit,
                 NThreads,
-                instance,
+                data,
                 output,
             )
 
@@ -69,17 +69,17 @@ def main(
     if isinstance(x, int) is True or isinstance(x, float) is True:
         if y != 0:
             return (
-                instance.n,
-                instance.g,
+                data.n,
+                data.g,
                 time_elapsed,
                 x,
                 y,
                 np.round(100 * (y - x) / y),
             )
         else:
-            return instance.n, instance.g, time_elapsed, x, y, 0
+            return data.n, data.g, time_elapsed, x, y, 0
     else:
-        return instance.n, instance.g, time_elapsed, x, y, "No solution"
+        return data.n, data.g, time_elapsed, x, y, "No solution"
 
 
 def Gurobi_solve(model, problemType, name, time_limit, NThreads, output):
@@ -155,7 +155,7 @@ def CPLEX_MIP_solve(model, problemType, name, time_limit, NThreads, output):
 
 
 def CPLEX_CP_solve(
-    model, problemType, name, time_limit, NThreads, instance, output
+    model, problemType, name, time_limit, NThreads, data, output
 ):
     msol = model.solve(
         TimeLimit=time_limit,
@@ -178,9 +178,9 @@ def CPLEX_CP_solve(
                 )
             )
             if problemType != "Parallelmachine":
-                for j in range(instance.n):
+                for j in range(data.n):
                     fh.write("\n")
-                    q = instance.g
+                    q = data.g
                     if problemType != "Parallelmachine":
                         for i in range(q):
                             var = msol.get_var_solution("T_{}_{}".format(j, i))
