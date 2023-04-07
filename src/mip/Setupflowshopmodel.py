@@ -30,12 +30,12 @@ def Setupflowshopmodel(data, mdl):
     upper_bounds += [V]
     types += ["C"]
 
-    ###### Constarints ########
+    ###### constraints ########
     constraints = []
     senses = []
     rhs = []
 
-    # constarint 1
+    # constraint 1
     for j in range(1, data.n + 1):
         variables = [
             "X_{}_{}".format(j, j1) for j1 in range(data.n + 1) if j1 != j
@@ -45,7 +45,7 @@ def Setupflowshopmodel(data, mdl):
         senses.append("E")
         rhs.append(1)
 
-    # constarint 2
+    # constraint 2
     for j1 in range(1, data.n + 1):
         variables = [
             "X_{}_{}".format(j, j1) for j in range(1, data.n + 1) if j1 != j
@@ -55,14 +55,14 @@ def Setupflowshopmodel(data, mdl):
         senses.append("L")
         rhs.append(1)
 
-    # constarint 2-1
+    # constraint 2-1
     variables = ["X_{}_{}".format(j, 0) for j in range(1, data.n + 1)]
     coffiecient = [1 for j in range(1, data.n + 1)]
     constraints.append([variables, coffiecient])
     senses.append("E")
     rhs.append(1)
 
-    # constarint 3
+    # constraint 3
     for j in range(1, data.n + 1):
         for i in range(1, data.g):
             variables = ["C_{}_{}".format(j, i)]
@@ -72,7 +72,7 @@ def Setupflowshopmodel(data, mdl):
             senses.append("G")
             rhs.append(data.p[j - 1][i])
 
-    # constarint 4
+    # constraint 4
     for j in range(1, data.n + 1):
         for j1 in range(data.n + 1):
             if j1 != j:
@@ -90,7 +90,7 @@ def Setupflowshopmodel(data, mdl):
                             data.p[j - 1][i] + data.s[i][j1 - 1][j - 1] - M
                         )
 
-    # constarint 5
+    # constraint 5
     for j in range(1, data.n + 1):
         variables = ["C_max"]
         variables += ["C_{}_{}".format(j, data.g - 1)]

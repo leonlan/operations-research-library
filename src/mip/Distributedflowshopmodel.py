@@ -17,10 +17,10 @@ def Distributedflowshopmodel(data, mdl):
         for j in range(data.n)
         for j1 in range(j + 1, data.n)
     ]
-    objective += [0 for j in range(data.n) for j1 in range(j + 1, data.n)]
-    lower_bounds += [0 for j in range(data.n) for j1 in range(j + 1, data.n)]
-    upper_bounds += [1 for j in range(data.n) for j1 in range(j + 1, data.n)]
-    types += ["B" for j in range(data.n) for j1 in range(j + 1, data.n)]
+    objective += [0 for j in range(data.n) for _ in range(j + 1, data.n)]
+    lower_bounds += [0 for j in range(data.n) for _ in range(j + 1, data.n)]
+    upper_bounds += [1 for j in range(data.n) for _ in range(j + 1, data.n)]
+    types += ["B" for j in range(data.n) for _ in range(j + 1, data.n)]
 
     # Variable C
     names += [
@@ -42,7 +42,7 @@ def Distributedflowshopmodel(data, mdl):
     senses = []
     rhs = []
 
-    # constarint 1
+    # constraint 1
     for j in range(data.n):
         variables = ["Y_{}_{}".format(j, k) for k in range(data.f)]
         coffiecient = [1] * data.f
@@ -50,7 +50,7 @@ def Distributedflowshopmodel(data, mdl):
         senses.append("E")
         rhs.append(1)
 
-    # constarint 2-1
+    # constraint 2-1
     for j in range(data.n):
         variables = ["C_{}_{}".format(j, 0)]
         coffiecient = [1]
@@ -58,7 +58,7 @@ def Distributedflowshopmodel(data, mdl):
         senses.append("G")
         rhs.append(data.p[j][0])
 
-    # constarint 2-2
+    # constraint 2-2
     for j in range(data.n):
         for i in range(1, data.g):
             variables = ["C_{}_{}".format(j, i)]
@@ -68,7 +68,7 @@ def Distributedflowshopmodel(data, mdl):
             senses.append("G")
             rhs.append(data.p[j][i])
 
-    # constarint 3
+    # constraint 3
     for j in range(data.n - 1):
         for j1 in range(j + 1, data.n):
             for i in range(data.g):
@@ -83,7 +83,7 @@ def Distributedflowshopmodel(data, mdl):
                     senses.append("G")
                     rhs.append(data.p[j][i] - 3 * M)
 
-    # constarint 4
+    # constraint 4
     for j in range(data.n - 1):
         for j1 in range(j + 1, data.n):
             for i in range(data.g):
