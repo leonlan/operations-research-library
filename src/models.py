@@ -1,7 +1,7 @@
 import time
 from pathlib import Path
 
-import datareading
+from Instance import Instance
 import modelCplexCP
 import modelCplexMIP
 import modelGoogleCP
@@ -15,15 +15,14 @@ from ortools.sat.python import cp_model
 
 def main(
     path,
-    computational_time,
+    time_limit,
     problemType,
     modelType,
     solver,
     NThreads,
     output,
 ):
-    # TODO refactor to Instance dataclass
-    instance = datareading.dataentry(path, problemType)
+    instance = Instance.from_file(path, problemType)
     name = path.stem
 
     time_start = time.perf_counter()
@@ -36,7 +35,7 @@ def main(
                 mdl,
                 problemType,
                 name,
-                computational_time,
+                time_limit,
                 NThreads,
                 output,
             )
@@ -49,7 +48,7 @@ def main(
                 mdl,
                 problemType,
                 name,
-                computational_time,
+                time_limit,
                 NThreads,
                 output,
             )
@@ -62,7 +61,7 @@ def main(
                 mdl,
                 problemType,
                 name,
-                computational_time,
+                time_limit,
                 NThreads,
                 output,
             )
@@ -76,7 +75,7 @@ def main(
                 mdl,
                 problemType,
                 name,
-                computational_time,
+                time_limit,
                 NThreads,
                 output,
             )
@@ -89,7 +88,7 @@ def main(
                 mdl,
                 problemType,
                 name,
-                computational_time,
+                time_limit,
                 NThreads,
                 instance,
                 output,
@@ -101,7 +100,7 @@ def main(
                 mdl,
                 problemType,
                 name,
-                computational_time,
+                time_limit,
                 NThreads,
                 output,
             )
@@ -125,11 +124,9 @@ def main(
 
 
 ####### Solve the MIP problem by Xpress ########
-def Xpress_MIP_solve(
-    mdl, problemType, name, computational_time, NThreads, output
-):
+def Xpress_MIP_solve(mdl, problemType, name, time_limit, NThreads, output):
     mdl.controls.outputlog = 0
-    mdl.setControl("maxtime", -computational_time)
+    mdl.setControl("maxtime", -time_limit)
     mdl.solve()
     if mdl.getProbStatusString() in ["mip_optimal", "mip_solution"]:
         return int(np.round(mdl.attributes.bestbound)), int(
@@ -140,14 +137,10 @@ def Xpress_MIP_solve(
 
 
 ####### Solve the MIP problem by Google ########
-def Google_MIP_solve(
-    mdl, problemType, name, computational_time, NThreads, output
-):
-    mdl.SetTimeLimit(computational_time * 1000)
+def Google_MIP_solve(mdl, problemType, name, time_limit, NThreads, output):
+    mdl.SetTimeLimit(time_limit * 1000)
     status = mdl.Solve()
-    if (
-        status == pywraplp.Solver.OPTIMAL or status == pywraplp.Solver.FEASIBLE
-    ):  # status == pywraplp.Solver.INFEASIBLE
+    if status == pywraplp.Solver.OPTIMAL or status == pywraplp.Solver.FEASIBLE:
         return np.round(mdl.Objective().BestBound()), np.round(
             mdl.Objective().Value()
         )
@@ -156,11 +149,9 @@ def Google_MIP_solve(
 
 
 ####### Solve the CP problem by Google ########
-def Google_CP_solve(
-    mdl, problemType, name, computational_time, NThreads, output
-):
+def Google_CP_solve(mdl, problemType, name, time_limit, NThreads, output):
     solver = cp_model.CpSolver()
-    solver.parameters.max_time_in_seconds = computational_time
+    solver.parameters.max_time_in_seconds = time_limit
     status = solver.Solve(
         mdl
     )  # 0 optimal, 1 feasible, 2 infeasible, 3 unbounded, 4 abnoral, 5 not_solved
@@ -173,10 +164,10 @@ def Google_CP_solve(
 
 
 ####### Solve the MIP problem by Gurobi ########
-def Gurobi_solve(mdl, problemType, name, computational_time, NThreads, output):
+def Gurobi_solve(mdl, problemType, name, time_limit, NThreads, output):
     mdl.setParam("MIPGapAbs", 0.99999)
     mdl.setParam("MIPGap", 0.0000)
-    mdl.setParam("Timelimit", computational_time)
+    mdl.setParam("Timelimit", time_limit)
     mdl.setParam("Threads", NThreads)
 
     mdl.optimize()
@@ -208,10 +199,8 @@ def Gurobi_solve(mdl, problemType, name, computational_time, NThreads, output):
 
 
 ####### Solve the MIP problem by CPLEX ########
-def CPLEX_MIP_solve(
-    mdl, problemType, name, computational_time, NThreads, output
-):
-    mdl.parameters.timelimit.set(computational_time)
+def CPLEX_MIP_solve(mdl, problemType, name, time_limit, NThreads, output):
+    mdl.parameters.timelimit.set(time_limit)
     mdl.parameters.mip.tolerances.absmipgap.set(0.99999)
     mdl.parameters.mip.tolerances.mipgap.set(0.00000)
     mdl.parameters.threads.set(NThreads)
@@ -261,16 +250,17 @@ def CPLEX_MIP_solve(
 
 ####### Solve the CP problem by DOCPLEX ########
 def CPLEX_CP_solve(
-    mdl, problemType, name, computational_time, NThreads, instance, output
+    mdl, problemType, name, time_limit, NThreads, instance, output
 ):
     msol = mdl.solve(
-        TimeLimit=computational_time,
+        TimeLimit=time_limit,
         Workers=NThreads,
         LogVerbosity="Quiet",
         WarningLevel=0,
         OptimalityTolerance=0.99,
         RelativeOptimalityTolerance=0.0,
-    )  # solving
+    )
+
     if msol.solution.is_empty() is False:
         fname = "solution_CP_CPLEX_{}_{}.txt".format(problemType, name)
         with open(Path(output) / fname, "w") as Allc:
