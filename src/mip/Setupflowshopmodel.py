@@ -1,12 +1,12 @@
 from .constants import M, V
 
 
-def Setupflowshopmodel(instance, mdl):
+def Setupflowshopmodel(data, mdl):
     # Variable X
     names = [
         "X_{}_{}".format(j, j1)
-        for j in range(1, instance.n + 1)
-        for j1 in range(instance.n + 1)
+        for j in range(1, data.n + 1)
+        for j1 in range(data.n + 1)
     ]
     objective = [0] * len(names)
     lower_bounds = [0] * len(names)
@@ -15,13 +15,13 @@ def Setupflowshopmodel(instance, mdl):
     # Variable C
     names += [
         "C_{}_{}".format(j, i)
-        for j in range(instance.n + 1)
-        for i in range(instance.g)
+        for j in range(data.n + 1)
+        for i in range(data.g)
     ]
-    objective += [0] * (instance.n + 1) * instance.g
-    lower_bounds += [0] * (instance.n + 1) * instance.g
-    upper_bounds += [V] * (instance.n + 1) * instance.g
-    types += ["C"] * (instance.n + 1) * instance.g
+    objective += [0] * (data.n + 1) * data.g
+    lower_bounds += [0] * (data.n + 1) * data.g
+    upper_bounds += [V] * (data.n + 1) * data.g
+    types += ["C"] * (data.n + 1) * data.g
 
     # Variable Cmax
     names += ["C_max"]
@@ -36,49 +36,47 @@ def Setupflowshopmodel(instance, mdl):
     rhs = []
 
     # constarint 1
-    for j in range(1, instance.n + 1):
+    for j in range(1, data.n + 1):
         variables = [
-            "X_{}_{}".format(j, j1) for j1 in range(instance.n + 1) if j1 != j
+            "X_{}_{}".format(j, j1) for j1 in range(data.n + 1) if j1 != j
         ]
-        coffiecient = [1 for j1 in range(instance.n + 1) if j1 != j]
+        coffiecient = [1 for j1 in range(data.n + 1) if j1 != j]
         constraints.append([variables, coffiecient])
         senses.append("E")
         rhs.append(1)
 
     # constarint 2
-    for j1 in range(1, instance.n + 1):
+    for j1 in range(1, data.n + 1):
         variables = [
-            "X_{}_{}".format(j, j1)
-            for j in range(1, instance.n + 1)
-            if j1 != j
+            "X_{}_{}".format(j, j1) for j in range(1, data.n + 1) if j1 != j
         ]
-        coffiecient = [1 for j in range(1, instance.n + 1) if j1 != j]
+        coffiecient = [1 for j in range(1, data.n + 1) if j1 != j]
         constraints.append([variables, coffiecient])
         senses.append("L")
         rhs.append(1)
 
     # constarint 2-1
-    variables = ["X_{}_{}".format(j, 0) for j in range(1, instance.n + 1)]
-    coffiecient = [1 for j in range(1, instance.n + 1)]
+    variables = ["X_{}_{}".format(j, 0) for j in range(1, data.n + 1)]
+    coffiecient = [1 for j in range(1, data.n + 1)]
     constraints.append([variables, coffiecient])
     senses.append("E")
     rhs.append(1)
 
     # constarint 3
-    for j in range(1, instance.n + 1):
-        for i in range(1, instance.g):
+    for j in range(1, data.n + 1):
+        for i in range(1, data.g):
             variables = ["C_{}_{}".format(j, i)]
             variables += ["C_{}_{}".format(j, i - 1)]
             coffiecient = [1, -1]
             constraints.append([variables, coffiecient])
             senses.append("G")
-            rhs.append(instance.p[j - 1][i])
+            rhs.append(data.p[j - 1][i])
 
     # constarint 4
-    for j in range(1, instance.n + 1):
-        for j1 in range(instance.n + 1):
+    for j in range(1, data.n + 1):
+        for j1 in range(data.n + 1):
             if j1 != j:
-                for i in range(instance.g):
+                for i in range(data.g):
                     variables = ["C_{}_{}".format(j, i)]
                     variables += ["C_{}_{}".format(j1, i)]
                     variables += ["X_{}_{}".format(j, j1)]
@@ -86,18 +84,16 @@ def Setupflowshopmodel(instance, mdl):
                     constraints.append([variables, coffiecient])
                     senses.append("G")
                     if j1 == 0:
-                        rhs.append(instance.p[j - 1][i] - M)
+                        rhs.append(data.p[j - 1][i] - M)
                     else:
                         rhs.append(
-                            instance.p[j - 1][i]
-                            + instance.s[i][j1 - 1][j - 1]
-                            - M
+                            data.p[j - 1][i] + data.s[i][j1 - 1][j - 1] - M
                         )
 
     # constarint 5
-    for j in range(1, instance.n + 1):
+    for j in range(1, data.n + 1):
         variables = ["C_max"]
-        variables += ["C_{}_{}".format(j, instance.g - 1)]
+        variables += ["C_{}_{}".format(j, data.g - 1)]
         coffiecient = [1, -1]
         constraints.append([variables, coffiecient])
         senses.append("G")

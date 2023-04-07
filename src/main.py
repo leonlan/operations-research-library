@@ -7,7 +7,7 @@ from constants import ProblemType
 
 
 def main(
-    instances: list[str],
+    datas: list[str],
     problem_type: ProblemType = typer.Option(
         ProblemType.PARALLEL_MACHINE, case_sensitive=False
     ),
@@ -17,7 +17,7 @@ def main(
     num_procs: int = 1,
     out_dir: Optional[str] = "tmp/",
 ):
-    for where in instances:
+    for where in datas:
         path = Path(where)
         num_jobs, num_stages, time, lb, ub, gap = models.main(
             path,

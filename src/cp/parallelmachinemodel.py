@@ -1,46 +1,39 @@
 from docplex.cp import model as docp
 
 
-def parallelmachinemodel(instance, mdl):
+def parallelmachinemodel(data, mdl):
     """
-    tasks = [[]] * instance.n
-    for j in range(instance.n):
-        tasks[j] = [mdl.interval_var(name="A_{}_{}".format(j,i), optional=True, size=instance.p[j][i]) for i in range(instance.g)]  #interval variable
+    tasks = [[]] * data.n
+    for j in range(data.n):
+        tasks[j] = [mdl.interval_var(name="A_{}_{}".format(j,i), optional=True, size=data.p[j][i]) for i in range(data.g)]  #interval variable
 
-    _tasks = [[]] * instance.n
-    for j in range(instance.n):
+    _tasks = [[]] * data.n
+    for j in range(data.n):
         _tasks[j] = mdl.interval_var(name="T_{}".format(j))
-    for j in range(instance.n):
-            mdl.add(mdl.alternative(_tasks[j], [tasks[j][i] for i in range(instance.g)]))
+    for j in range(data.n):
+            mdl.add(mdl.alternative(_tasks[j], [tasks[j][i] for i in range(data.g)]))
 
-    for i in range(instance.g):
-        mdl.add(mdl.no_overlap( [tasks[j][i] for j in range(instance.n)]))     #no overlap machines
+    for i in range(data.g):
+        mdl.add(mdl.no_overlap( [tasks[j][i] for j in range(data.n)]))     #no overlap machines
 
-    mdl.add(mdl.minimize( mdl.max([ mdl.end_of(_tasks[j]) for j in range(instance.n) ]) ))   #this is makespan
+    mdl.add(mdl.minimize( mdl.max([ mdl.end_of(_tasks[j]) for j in range(data.n) ]) ))   #this is makespan
 
     return mdl
     """
 
-    machine = [
-        mdl.integer_var(min=0, max=instance.g - 1) for j in range(instance.n)
-    ]
-    duration = [
-        mdl.element(instance.p[j], machine[j]) for j in range(instance.n)
-    ]  # duration[i] = matrix[i][machine[i]]
+    machine = [mdl.integer_var(min=0, max=data.g - 1) for _ in range(data.n)]
+    duration = [mdl.element(data.p[j], machine[j]) for j in range(data.n)]
+
     makespan = max(
         [
-            sum(
-                [
-                    instance.p[j][i] * (machine[j] == i)
-                    for j in range(instance.n)
-                ]
-            )
-            for i in range(instance.g)
+            sum([data.p[j][i] * (machine[j] == i) for j in range(data.n)])
+            for i in range(data.g)
         ]
     )
-    mdl.add(
-        sum([duration[j] for j in range(instance.n)]) <= instance.g * makespan
-    )  # Mostly for strengthening lower bound
+
+    lhs = sum([duration[j] for j in range(data.n)])
+    mdl.add(lhs <= data.g * makespan)
+
     mdl.add(docp.minimize(makespan))
 
     return mdl
