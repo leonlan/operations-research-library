@@ -4,10 +4,10 @@ from pathlib import Path
 import cplex
 import docplex.cp.model as docp
 import gurobipy as grb
-import modelCplexCP
-import modelCplexMIP
 import numpy as np
+from cp.modelCplexCP import CPmodel_generation
 from Instance import Instance
+from mip.modelCplexMIP import MIPmodel_generation
 
 
 def main(
@@ -27,9 +27,7 @@ def main(
     if modelType == "mip":
         if solver == "cplex":
             model = cplex.Cplex()
-            model = modelCplexMIP.MIPmodel_generation(
-                instance, model, problemType
-            )
+            model = MIPmodel_generation(instance, model, problemType)
             x, y = CPLEX_MIP_solve(
                 model,
                 problemType,
@@ -40,9 +38,7 @@ def main(
             )
         if solver == "gurobi":
             model = cplex.Cplex()
-            model = modelCplexMIP.MIPmodel_generation(
-                instance, model, problemType
-            )
+            model = MIPmodel_generation(instance, model, problemType)
             model.write("model.lp")
             model = grb.read("model.lp")
             x, y = Gurobi_solve(
@@ -57,9 +53,7 @@ def main(
     if modelType == "cp":
         if solver == "cplex":
             model = docp.CpoModel()
-            model = modelCplexCP.CPmodel_generation(
-                instance, model, problemType
-            )
+            model = CPmodel_generation(instance, model, problemType)
             x, y = CPLEX_CP_solve(
                 model,
                 problemType,
