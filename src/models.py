@@ -6,12 +6,8 @@ import docplex.cp.model as docp
 import gurobipy as grb
 import modelCplexCP
 import modelCplexMIP
-import modelGoogleCP
-import modelGoogleMIP
 import numpy as np
 from Instance import Instance
-from ortools.linear_solver import pywraplp
-from ortools.sat.python import cp_model
 
 
 def main(
@@ -57,19 +53,6 @@ def main(
                 NThreads,
                 output,
             )
-        if solver == "google":
-            model = pywraplp.Solver.CreateSolver("SCIP")
-            model = modelGoogleMIP.MIPmodel_generation(
-                instance, model, problemType
-            )
-            x, y = Google_MIP_solve(
-                model,
-                problemType,
-                name,
-                time_limit,
-                NThreads,
-                output,
-            )
 
     if modelType == "cp":
         if solver == "cplex":
@@ -84,19 +67,6 @@ def main(
                 time_limit,
                 NThreads,
                 instance,
-                output,
-            )
-        if solver == "google":
-            model = cp_model.CpModel()
-            model = modelGoogleCP.CPmodel_generation(
-                instance, model, problemType
-            )
-            x, y = Google_CP_solve(
-                model,
-                problemType,
-                name,
-                time_limit,
-                NThreads,
                 output,
             )
 
@@ -116,32 +86,6 @@ def main(
             return instance.n, instance.g, time_elapsed, x, y, 0
     else:
         return instance.n, instance.g, time_elapsed, x, y, "No solution"
-
-
-def Google_MIP_solve(model, problemType, name, time_limit, NThreads, output):
-    model.SetTimeLimit(time_limit * 1000)
-    status = model.Solve()
-    if status == pywraplp.Solver.OPTIMAL or status == pywraplp.Solver.FEASIBLE:
-        return np.round(model.Objective().BestBound()), np.round(
-            model.Objective().Value()
-        )
-    else:
-        return "Infeasible", "Unkown"
-
-
-####### Solve the CP problem by Google ########
-def Google_CP_solve(model, problemType, name, time_limit, NThreads, output):
-    solver = cp_model.CpSolver()
-    solver.parameters.max_time_in_seconds = time_limit
-    status = solver.Solve(
-        model
-    )  # 0 optimal, 1 feasible, 2 infeasible, 3 unbounded, 4 abnoral, 5 not_solved
-    if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-        return np.round(solver.BestObjectiveBound()), np.round(
-            solver.ObjectiveValue()
-        )
-    else:
-        return "Infeasible", "Unkown"
 
 
 def Gurobi_solve(model, problemType, name, time_limit, NThreads, output):
