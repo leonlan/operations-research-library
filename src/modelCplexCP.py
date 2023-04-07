@@ -1,4 +1,4 @@
-from docplex.cp.model import *
+import docplex.cp.model as docp
 
 
 ###### main ########
@@ -387,6 +387,6 @@ def prallelmachinemodel(instance, mdl):
     mdl.add(
         sum([duration[j] for j in range(instance.n)]) <= instance.g * makespan
     )  # Mostly for strengthening lower bound
-    mdl.add(minimize(makespan))
+    mdl.add(docp.minimize(makespan))
 
     return mdl

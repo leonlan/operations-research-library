@@ -42,6 +42,7 @@ select = [
 ignore = [
     "E501",  # line too long, handled by black
     "C901",  # too complex
+    "B008",  # function calls, needed for Typer
 ]
 
 

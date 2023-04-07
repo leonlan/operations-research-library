@@ -11,9 +11,9 @@ def main(
     problem_type: ProblemType = typer.Option(
         ProblemType.PARALLEL_MACHINE, case_sensitive=False
     ),
-    model_type: str = "CP",
+    model_type: str = "cp",
     time_limit: int = 4,
-    solver: str = "CPLEX",
+    solver: str = "cplex",
     num_procs: int = 1,
     out_dir: Optional[str] = "tmp/",
 ):
@@ -23,8 +23,8 @@ def main(
             path,
             time_limit,
             problem_type.value,
-            model_type,
-            solver,
+            model_type.lower(),
+            solver.lower(),
             num_procs,
             out_dir,
         )
