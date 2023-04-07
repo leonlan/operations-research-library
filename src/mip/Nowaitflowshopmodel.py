@@ -28,12 +28,12 @@ def Nowaitflowshopmodel(data, mdl):
     upper_bounds += [V]
     types += ["C"]
 
-    ###### Constarints ########
+    ###### constraints ########
     constraints = []
     senses = []
     rhs = []
 
-    # constarint 1
+    # constraint 1
     for j in range(data.n):
         variables = ["C_{}_{}".format(j, 0)]
         coffiecient = [1]
@@ -41,7 +41,7 @@ def Nowaitflowshopmodel(data, mdl):
         senses.append("G")
         rhs.append(data.p[j][0])
 
-    # constarint 2
+    # constraint 2
     for j in range(data.n):
         for i in range(1, data.g):
             variables = ["C_{}_{}".format(j, i)]
@@ -51,7 +51,7 @@ def Nowaitflowshopmodel(data, mdl):
             senses.append("E")
             rhs.append(data.p[j][i])
 
-    # constarint 3
+    # constraint 3
     for j in range(data.n - 1):
         for j1 in range(j + 1, data.n):
             for i in range(data.g):
@@ -63,7 +63,7 @@ def Nowaitflowshopmodel(data, mdl):
                 senses.append("G")
                 rhs.append(data.p[j][i] - M)
 
-    # constarint 4
+    # constraint 4
     for j in range(data.n - 1):
         for j1 in range(j + 1, data.n):
             for i in range(data.g):
@@ -75,7 +75,7 @@ def Nowaitflowshopmodel(data, mdl):
                 senses.append("G")
                 rhs.append(data.p[j1][i])
 
-    # constarint 5
+    # constraint 5
     for j in range(data.n):
         variables = ["C_max"]
         variables += ["C_{}_{}".format(j, data.g - 1)]

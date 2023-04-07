@@ -22,7 +22,7 @@ def parallelmachinemodel(data, mdl):
     senses = []
     rhs = []
 
-    # constarint 1
+    # constraint 1
     for j in range(data.n):
         variables = ["Y_{}_{}".format(j, i) for i in range(data.g)]
         coffiecient = [1] * data.g
@@ -30,7 +30,7 @@ def parallelmachinemodel(data, mdl):
         senses.append("E")
         rhs.append(1)
 
-    # constarint 2
+    # constraint 2
     for i in range(data.g):
         variables = ["C_max"]
         coffiecient = [1]

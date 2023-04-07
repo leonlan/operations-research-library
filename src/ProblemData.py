@@ -4,6 +4,7 @@ class ProblemData:
         self.g = 0  # stages
         self.f = 0  # factories
 
+        # TODO rename these indices
         self.o = []  # operations
         self.p = []  # processing_times
         self.r = []  # routes
