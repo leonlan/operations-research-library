@@ -2,13 +2,13 @@ import time
 from pathlib import Path
 
 import cplex
+import docplex.cp.model as docp
 import gurobipy as grb
 import modelCplexCP
 import modelCplexMIP
 import modelGoogleCP
 import modelGoogleMIP
 import numpy as np
-from docplex.cp.model import *
 from Instance import Instance
 from ortools.linear_solver import pywraplp
 from ortools.sat.python import cp_model
@@ -28,8 +28,8 @@ def main(
 
     time_start = time.perf_counter()
 
-    if modelType == "MIP":
-        if solver == "CPLEX":
+    if modelType == "mip":
+        if solver == "cplex":
             model = cplex.Cplex()
             model = modelCplexMIP.MIPmodel_generation(
                 instance, model, problemType
@@ -42,7 +42,7 @@ def main(
                 NThreads,
                 output,
             )
-        if solver == "Gurobi":
+        if solver == "gurobi":
             model = cplex.Cplex()
             model = modelCplexMIP.MIPmodel_generation(
                 instance, model, problemType
@@ -57,7 +57,7 @@ def main(
                 NThreads,
                 output,
             )
-        if solver == "Google":
+        if solver == "google":
             model = pywraplp.Solver.CreateSolver("SCIP")
             model = modelGoogleMIP.MIPmodel_generation(
                 instance, model, problemType
@@ -70,26 +70,10 @@ def main(
                 NThreads,
                 output,
             )
-        if solver == "Xpress":
-            model = cplex.Cplex()
-            model = modelCplexMIP.MIPmodel_generation(
-                instance, model, problemType
-            )
-            model.write("model.lp")
-            model = xp.problem()
-            model.read("model", "l")
-            x, y = Xpress_MIP_solve(
-                model,
-                problemType,
-                name,
-                time_limit,
-                NThreads,
-                output,
-            )
 
-    if modelType == "CP":
-        if solver == "CPLEX":
-            model = CpoModel()
+    if modelType == "cp":
+        if solver == "cplex":
+            model = docp.CpoModel()
             model = modelCplexCP.CPmodel_generation(
                 instance, model, problemType
             )
@@ -102,7 +86,7 @@ def main(
                 instance,
                 output,
             )
-        if solver == "Google":
+        if solver == "google":
             model = cp_model.CpModel()
             model = modelGoogleCP.CPmodel_generation(
                 instance, model, problemType
@@ -134,20 +118,6 @@ def main(
         return instance.n, instance.g, time_elapsed, x, y, "No solution"
 
 
-####### Solve the MIP problem by Xpress ########
-def Xpress_MIP_solve(model, problemType, name, time_limit, NThreads, output):
-    model.controls.outputlog = 0
-    model.setControl("maxtime", -time_limit)
-    model.solve()
-    if model.getProbStatusString() in ["mip_optimal", "mip_solution"]:
-        return int(np.round(model.attributes.bestbound)), int(
-            np.round(model.attributes.mipobjval)
-        )
-    else:
-        return "Infeasible", "Unkown"
-
-
-####### Solve the MIP problem by Google ########
 def Google_MIP_solve(model, problemType, name, time_limit, NThreads, output):
     model.SetTimeLimit(time_limit * 1000)
     status = model.Solve()
@@ -174,7 +144,6 @@ def Google_CP_solve(model, problemType, name, time_limit, NThreads, output):
         return "Infeasible", "Unkown"
 
 
-####### Solve the MIP problem by Gurobi ########
 def Gurobi_solve(model, problemType, name, time_limit, NThreads, output):
     model.setParam("MIPGapAbs", 0.99999)
     model.setParam("MIPGap", 0.0000)
@@ -206,7 +175,6 @@ def Gurobi_solve(model, problemType, name, time_limit, NThreads, output):
         return "Infeasible", "Unkown"
 
 
-####### Solve the MIP problem by CPLEX ########
 def CPLEX_MIP_solve(model, problemType, name, time_limit, NThreads, output):
     model.parameters.timelimit.set(time_limit)
     model.parameters.mip.tolerances.absmipgap.set(0.99999)
@@ -216,10 +184,6 @@ def CPLEX_MIP_solve(model, problemType, name, time_limit, NThreads, output):
     model.set_error_stream(None)
     model.set_warning_stream(None)
     model.set_results_stream(None)
-    # model.write('..\\LPs\\{}\\model_{}_{}.lp'.format(problemType,problemType,name))
-    # comment to generate only LP files
-    # model.write('model.lp')
-    # model.parameters.tune_problem_set(filenames=["model.lp"])
     model.solve()
     if (
         model.solution.get_status_string(status_code=None)
@@ -227,12 +191,8 @@ def CPLEX_MIP_solve(model, problemType, name, time_limit, NThreads, output):
         and model.solution.get_status_string(status_code=None)
         != "time limit exceeded, no integer solution"
     ):
-        with open(
-            "{}\\solution_MIP_CPLEX_{}_{}.txt".format(
-                output, problemType, name
-            ),
-            "w",
-        ) as fh:
+        fname = "solution_MIP_CPLEX_{}_{}.txt".format(problemType, name)
+        with open(Path(output) / fname, "w") as fh:
             fh.write(
                 "\n MIP CPLEX {} - {} - ({} - {})".format(
                     problemType,
@@ -241,6 +201,7 @@ def CPLEX_MIP_solve(model, problemType, name, time_limit, NThreads, output):
                     int(np.round(model.solution.get_objective_value())),
                 )
             )
+
             for i, x in enumerate(model.solution.get_values()):
                 if x != 0:
                     if model.variables.get_names(i).startswith("C"):
@@ -253,10 +214,8 @@ def CPLEX_MIP_solve(model, problemType, name, time_limit, NThreads, output):
         )
     else:
         return "Infeasible", "Unkown"
-    # end comment
 
 
-####### Solve the CP problem by DOCPLEX ########
 def CPLEX_CP_solve(
     model, problemType, name, time_limit, NThreads, instance, output
 ):
