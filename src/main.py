@@ -1,9 +1,8 @@
 from pathlib import Path
 from typing import Optional
 
-import typer
-
 import models
+import typer
 from constants import ProblemType
 
 
