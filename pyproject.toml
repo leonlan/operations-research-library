@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "milp-vs-cp"
+version = "0.1.0"
+description = ""
+authors = ["l-lan <l.lan@vu.nl>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "milp_vs_cp"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+docplex = "^2.25.236"
+pre-commit = "^3.2.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.black]
+line-length = 79
+
+
+[tool.mypy]
+ignore_missing_imports = true
+
+
+[tool.ruff]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "C901",  # too complex
+]
+
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
