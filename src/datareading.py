@@ -1,5 +1,5 @@
 #### Structure for instance data #######
-class struct:
+class Instance:
     def __init__(self):
         self.n = 0  # jobs
         self.g = 0  # stages
@@ -15,7 +15,7 @@ class struct:
 
 ####### data entry ########
 def dataentry(filename, problemType):
-    instance = struct()
+    instance = Instance()
     with open(filename, "r") as data:
         instance.n = int(data.readline().strip().split()[0])
         instance.g = int(data.readline().strip().split()[0])
@@ -58,17 +58,14 @@ def dataentry(filename, problemType):
         else:
             instance.o = [int(x) for x in data.readline().strip().split()]
             instance.p = [[] for j in range(instance.n)]
+
             for j in range(instance.n):
                 instance.p[j] = [[] for k in range(instance.o[j])]
+
                 for k in range(instance.o[j]):
                     x = [int(x) for x in data.readline().strip().split()]
+
                     for i in range(instance.g):
                         instance.p[j][k].append(x[i])
-
-    print(instance.n)
-    print(instance.g)
-    # print(instance.p)
-    # if problemType == 'Jobshop':
-    #    print(instance.r)
 
     return instance

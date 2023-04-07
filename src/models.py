@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 
 import datareading
 import modelCplexCP
@@ -13,37 +14,33 @@ from ortools.sat.python import cp_model
 
 
 def main(
+    path,
     computational_time,
-    benchmark,
     problemType,
     modelType,
-    Solver,
+    solver,
     NThreads,
-    address,
     output,
 ):
-    print("\n\n Instance: ", benchmark)
-    print("{}{}.txt".format(address, benchmark))
-    instance = datareading.dataentry(
-        "{}{}.txt".format(address, benchmark), problemType
-    )  # The OpenStack does not allow subdirectories for instances
+    # TODO refactor to Instance dataclass
+    instance = datareading.dataentry(path, problemType)
+    name = path.stem
 
     time_start = time.perf_counter()
 
-    print("model ", modelType, "problem ", problemType)
     if modelType == "MIP":
-        if Solver == "CPLEX":
+        if solver == "CPLEX":
             mdl = cplex.Cplex()
             mdl = modelCplexMIP.MIPmodel_generation(instance, mdl, problemType)
             x, y = CPLEX_MIP_solve(
                 mdl,
                 problemType,
-                benchmark,
+                name,
                 computational_time,
                 NThreads,
                 output,
             )
-        if Solver == "Gurobi":
+        if solver == "Gurobi":
             mdl = cplex.Cplex()
             mdl = modelCplexMIP.MIPmodel_generation(instance, mdl, problemType)
             mdl.write("model.lp")
@@ -51,12 +48,12 @@ def main(
             x, y = Gurobi_solve(
                 mdl,
                 problemType,
-                benchmark,
+                name,
                 computational_time,
                 NThreads,
                 output,
             )
-        if Solver == "Google":
+        if solver == "Google":
             mdl = pywraplp.Solver.CreateSolver("SCIP")
             mdl = modelGoogleMIP.MIPmodel_generation(
                 instance, mdl, problemType
@@ -64,12 +61,12 @@ def main(
             x, y = Google_MIP_solve(
                 mdl,
                 problemType,
-                benchmark,
+                name,
                 computational_time,
                 NThreads,
                 output,
             )
-        if Solver == "Xpress":
+        if solver == "Xpress":
             mdl = cplex.Cplex()
             mdl = modelCplexMIP.MIPmodel_generation(instance, mdl, problemType)
             mdl.write("model.lp")
@@ -78,32 +75,32 @@ def main(
             x, y = Xpress_MIP_solve(
                 mdl,
                 problemType,
-                benchmark,
+                name,
                 computational_time,
                 NThreads,
                 output,
             )
 
     if modelType == "CP":
-        if Solver == "CPLEX":
+        if solver == "CPLEX":
             mdl = CpoModel()
             mdl = modelCplexCP.CPmodel_generation(instance, mdl, problemType)
             x, y = CPLEX_CP_solve(
                 mdl,
                 problemType,
-                benchmark,
+                name,
                 computational_time,
                 NThreads,
                 instance,
                 output,
             )
-        if Solver == "Google":
+        if solver == "Google":
             mdl = cp_model.CpModel()
             mdl = modelGoogleCP.CPmodel_generation(instance, mdl, problemType)
             x, y = Google_CP_solve(
                 mdl,
                 problemType,
-                benchmark,
+                name,
                 computational_time,
                 NThreads,
                 output,
@@ -111,8 +108,6 @@ def main(
 
     time_elapsed = np.round(time.perf_counter() - time_start, 3)
 
-    print("\nLB: {}, UB: {}".format(x, y))
-    print("\nComputational time:", time_elapsed)
     if isinstance(x, int) is True or isinstance(x, float) is True:
         if y != 0:
             return (
@@ -131,7 +126,7 @@ def main(
 
 ####### Solve the MIP problem by Xpress ########
 def Xpress_MIP_solve(
-    mdl, problemType, benchmark, computational_time, NThreads, output
+    mdl, problemType, name, computational_time, NThreads, output
 ):
     mdl.controls.outputlog = 0
     mdl.setControl("maxtime", -computational_time)
@@ -146,7 +141,7 @@ def Xpress_MIP_solve(
 
 ####### Solve the MIP problem by Google ########
 def Google_MIP_solve(
-    mdl, problemType, benchmark, computational_time, NThreads, output
+    mdl, problemType, name, computational_time, NThreads, output
 ):
     mdl.SetTimeLimit(computational_time * 1000)
     status = mdl.Solve()
@@ -162,14 +157,13 @@ def Google_MIP_solve(
 
 ####### Solve the CP problem by Google ########
 def Google_CP_solve(
-    mdl, problemType, benchmark, computational_time, NThreads, output
+    mdl, problemType, name, computational_time, NThreads, output
 ):
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = computational_time
     status = solver.Solve(
         mdl
     )  # 0 optimal, 1 feasible, 2 infeasible, 3 unbounded, 4 abnoral, 5 not_solved
-    print("status", status)
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
         return np.round(solver.BestObjectiveBound()), np.round(
             solver.ObjectiveValue()
@@ -179,9 +173,7 @@ def Google_CP_solve(
 
 
 ####### Solve the MIP problem by Gurobi ########
-def Gurobi_solve(
-    mdl, problemType, benchmark, computational_time, NThreads, output
-):
+def Gurobi_solve(mdl, problemType, name, computational_time, NThreads, output):
     mdl.setParam("MIPGapAbs", 0.99999)
     mdl.setParam("MIPGap", 0.0000)
     mdl.setParam("Timelimit", computational_time)
@@ -191,14 +183,14 @@ def Gurobi_solve(
     if mdl.status != 1:
         with open(
             "{}\\solution_MIP_Gurobi_{}_{}.txt".format(
-                output, problemType, benchmark
+                output, problemType, name
             ),
             "w",
         ) as Allc:
             Allc.write(
                 "\n MIP Gurobi {} - {} - ({} - {})".format(
                     problemType,
-                    benchmark,
+                    name,
                     int(np.round(mdl.objbound)),
                     int(np.round(mdl.objVal)),
                 )
@@ -206,7 +198,6 @@ def Gurobi_solve(
             for v in mdl.getVars():
                 if v.x != 0:
                     if v.varName.startswith("C"):
-                        # print('%s %g' % (v.varName, v.x))
                         Allc.write("\n")
                         Allc.write(v.varName)
                         Allc.write(" ")
@@ -218,7 +209,7 @@ def Gurobi_solve(
 
 ####### Solve the MIP problem by CPLEX ########
 def CPLEX_MIP_solve(
-    mdl, problemType, benchmark, computational_time, NThreads, output
+    mdl, problemType, name, computational_time, NThreads, output
 ):
     mdl.parameters.timelimit.set(computational_time)
     mdl.parameters.mip.tolerances.absmipgap.set(0.99999)
@@ -228,7 +219,7 @@ def CPLEX_MIP_solve(
     mdl.set_error_stream(None)
     mdl.set_warning_stream(None)
     mdl.set_results_stream(None)
-    # mdl.write('..\\LPs\\{}\\model_{}_{}.lp'.format(problemType,problemType,benchmark))
+    # mdl.write('..\\LPs\\{}\\model_{}_{}.lp'.format(problemType,problemType,name))
     # comment to generate only LP files
     # mdl.write('model.lp')
     # mdl.parameters.tune_problem_set(filenames=["model.lp"])
@@ -239,17 +230,16 @@ def CPLEX_MIP_solve(
         and mdl.solution.get_status_string(status_code=None)
         != "time limit exceeded, no integer solution"
     ):
-        # print(mdl.solution.MIP.get_best_objective(),mdl.solution.get_objective_value())
         with open(
             "{}\\solution_MIP_CPLEX_{}_{}.txt".format(
-                output, problemType, benchmark
+                output, problemType, name
             ),
             "w",
         ) as Allc:
             Allc.write(
                 "\n MIP CPLEX {} - {} - ({} - {})".format(
                     problemType,
-                    benchmark,
+                    name,
                     int(np.round(mdl.solution.MIP.get_best_objective())),
                     int(np.round(mdl.solution.get_objective_value())),
                 )
@@ -271,7 +261,7 @@ def CPLEX_MIP_solve(
 
 ####### Solve the CP problem by DOCPLEX ########
 def CPLEX_CP_solve(
-    mdl, problemType, benchmark, computational_time, NThreads, instance, output
+    mdl, problemType, name, computational_time, NThreads, instance, output
 ):
     msol = mdl.solve(
         TimeLimit=computational_time,
@@ -282,17 +272,12 @@ def CPLEX_CP_solve(
         RelativeOptimalityTolerance=0.0,
     )  # solving
     if msol.solution.is_empty() is False:
-        print(msol.get_objective_bounds())
-        with open(
-            "{}\\solution_CP_CPLEX_{}_{}.txt".format(
-                output, problemType, benchmark
-            ),
-            "w",
-        ) as Allc:
+        fname = "solution_CP_CPLEX_{}_{}.txt".format(problemType, name)
+        with open(Path(output) / fname, "w") as Allc:
             Allc.write(
                 "\n CP {} - {} - ({} - {})".format(
                     problemType,
-                    benchmark,
+                    name,
                     int(np.round(msol.get_objective_bounds()[0])),
                     int(np.round(msol.get_objective_values()[0])),
                 )
