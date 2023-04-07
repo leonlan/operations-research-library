@@ -1,51 +1,70 @@
-import sys
+# python src/main.py Flexiblejobshop CP 3600 1 20 CPLEX 4 data/Flexiblejobshop/New/ tmp
 
+import sys
+import argparse
 
 import models
 
-try:
-    problem_name = sys.argv[1]
-    modelType = sys.argv[2]
-    computational_time = sys.argv[3]
-    First = sys.argv[4]
-    Last = sys.argv[5]
+parser = argparse.ArgumentParser(description="Run a benchmark.")
+parser.add_argument(
+    "problem_name",
+    type=str,
+    default="Parallelmachine",
+    nargs="?",
+    help="Name of the problem instance.",
+)
+parser.add_argument(
+    "modelType",
+    type=str,
+    default="CP",
+    nargs="?",
+    help="Type of model to use (CP or LP).",
+)
+parser.add_argument(
+    "computational_time",
+    type=int,
+    default=10,
+    nargs="?",
+    help="Maximum computational time in seconds.",
+)
+parser.add_argument(
+    "First",
+    type=int,
+    default=151,
+    nargs="?",
+    help="Index of the first benchmark instance.",
+)
+parser.add_argument(
+    "Last",
+    type=int,
+    default=151,
+    nargs="?",
+    help="Index of the last benchmark instance.",
+)
+parser.add_argument(
+    "Solver",
+    type=str,
+    default="Google",
+    help="Solver to use (CPLEX or Google).",
+)
+parser.add_argument(
+    "NThreads", type=int, default=4, help="Number of threads to use."
+)
+parser.add_argument(
+    "address", type=str, help="Path to the problem instance files."
+)
+parser.add_argument("output", type=str, help="Path to the output folder.")
 
-except:
-    problem_name = "Parallelmachine"
-    modelType = "CP"
-    computational_time = "10"
-    First = "151"
-    Last = "151"
+args = parser.parse_args()
 
-try:
-    Solver = sys.argv[6]
-except:
-    Solver = "Google"
-
-try:
-    NThreads = int(sys.argv[7])
-except:
-    NThreads = 4
-
-try:
-    address = sys.argv[8]
-except:
-    address = "..\\Instances\\{}".format(problem_name)  # os.path.dirname(__file__)
-
-try:
-    output = sys.argv[9]
-except:
-    output = "..\\Results"  # os.path.dirname(__file__)
-
-
-for benchmark in range(int(First), int(Last) + 1):
-    if modelType == "CP":
-        if Solver not in ["CPLEX", "Google"]:
+for benchmark in range(args.First, args.Last + 1):
+    if args.modelType == "CP":
+        if args.Solver not in ["CPLEX", "Google"]:
             continue
         if (
-            Solver == "Google"
-            and modelType == "CP"
-            and problem_name
+            args.Solver == "Google"
+            and args.modelType == "CP"
+            and args.problem_name
             not in [
                 "Non-Flowshop",
                 "Hybridflowshop",
@@ -59,39 +78,58 @@ for benchmark in range(int(First), int(Last) + 1):
             continue
     try:
         n, g, Time, LB, UB, GAP = models.main(
-            int(computational_time),
+            args.computational_time,
             benchmark,
-            problem_name,
-            modelType,
-            Solver,
-            NThreads,
-            address,
-            output,
+            args.problem_name,
+            args.modelType,
+            args.Solver,
+            args.NThreads,
+            args.address,
+            args.output,
         )
         result = open(
-            "{}\\result_{}_{}_{}_{}_{}.txt".format(
-                output, modelType, problem_name, computational_time, NThreads, benchmark
+            "{}/result_{}_{}_{}_{}_{}.txt".format(
+                args.output,
+                args.modelType,
+                args.problem_name,
+                args.computational_time,
+                args.NThreads,
+                benchmark,
             ),
             "a",
         )
         result.write(
             "\n{}\t {}\t {}\t {}\t {}\t {}\t {}\t {}\t {}\t {}".format(
-                problem_name, Solver, modelType, benchmark, n, g, LB, UB, GAP, Time
+                args.problem_name,
+                args.Solver,
+                args.modelType,
+                benchmark,
+                n,
+                g,
+                LB,
+                UB,
+                GAP,
+                Time,
             )
         )
         result.close()
     except:
         result = open(
-            "{}\\result_{}_{}_{}_{}_{}.txt".format(
-                output, modelType, problem_name, computational_time, NThreads, benchmark
+            "{}/result_{}_{}_{}_{}_{}.txt".format(
+                args.output,
+                args.modelType,
+                args.problem_name,
+                args.computational_time,
+                args.NThreads,
+                benchmark,
             ),
             "a",
         )
         result.write(
             "\n{}\t {}\t {}\t {}\t {} \t {}".format(
-                problem_name,
-                Solver,
-                modelType,
+                args.problem_name,
+                args.Solver,
+                args.modelType,
                 benchmark,
                 sys.exc_info()[0],
                 sys.exc_info()[1],
