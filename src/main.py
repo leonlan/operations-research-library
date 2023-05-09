@@ -12,7 +12,7 @@ def main(
         ProblemType.PARALLEL_MACHINE, case_sensitive=False
     ),
     model_type: str = "cp",
-    time_limit: int = 4,
+    time_limit: int = 3,
     solver: str = "cplex",
     num_procs: int = 1,
     out_dir: Optional[str] = "tmp/",
@@ -33,6 +33,8 @@ def main(
         with open(x, "w") as fh:
             result = f"{problem_type}\t{solver}\t{model_type}\t{path.stem}\t{num_jobs}\t{num_stages}\t{lb}\t{ub}\t{gap}\t{time}"
             fh.write(result)
+
+            print(result)
 
 
 if __name__ == "__main__":

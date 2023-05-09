@@ -1,6 +1,5 @@
 from src.cp.Distributedflowshopmodel import Distributedflowshopmodel
 from src.cp.flowshopmodel import flowshopmodel
-from src.cp.Nowaitflowshopmodel import Nowaitflowshopmodel
 from src.cp.parallelmachinemodel import parallelmachinemodel
 from src.cp.Setupflowshopmodel import Setupflowshopmodel
 from src.cp.Tardinessflowshopmodel import Tardinessflowshopmodel
@@ -13,8 +12,6 @@ def CPmodel_generation(data, mdl, problemType):
         mdl = flowshopmodel(data, mdl)
     if problemType == "Distributedflowshop":
         mdl = Distributedflowshopmodel(data, mdl)
-    if problemType == "Nowaitflowshop":
-        mdl = Nowaitflowshopmodel(data, mdl)
     if problemType == "Setupflowshop":
         mdl = Setupflowshopmodel(data, mdl)
     if problemType == "Tardinessflowshop":
