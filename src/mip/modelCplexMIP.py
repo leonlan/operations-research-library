@@ -1,23 +1,23 @@
-from src.mip.Distributedflowshopmodel import Distributedflowshopmodel
-from src.mip.flowshopmodel import flowshopmodel
-from src.mip.parallelmachinemodel import parallelmachinemodel
-from src.mip.Setupflowshopmodel import Setupflowshopmodel
-from src.mip.Tardinessflowshopmodel import Tardinessflowshopmodel
-from src.mip.TCTflowshopmodel import TCTflowshopmodel
+from src.mip.DistributedFlowShop import DistributedFlowShop
+from src.mip.FlowShop import FlowShop
+from src.mip.ParallelMachine import ParallelMachine
+from src.mip.SetupFlowShop import SetupFlowShop
+from src.mip.TardinessFlowShop import TardinessFlowShop
+from src.mip.TCTFlowShop import TCTFlowShop
 
 
 ###### main ########
 def MIPmodel_generation(data, mdl, problemType):
     if problemType == "Flowshop":
-        mdl = flowshopmodel(data, mdl)
+        mdl = FlowShop(data, mdl)
     if problemType == "Distributedflowshop":
-        mdl = Distributedflowshopmodel(data, mdl)
+        mdl = DistributedFlowShop(data, mdl)
     if problemType == "Setupflowshop":
-        mdl = Setupflowshopmodel(data, mdl)
+        mdl = SetupFlowShop(data, mdl)
     if problemType == "Tardinessflowshop":
-        mdl = Tardinessflowshopmodel(data, mdl)
+        mdl = TardinessFlowShop(data, mdl)
     if problemType == "TCTflowshop":
-        mdl = TCTflowshopmodel(data, mdl)
+        mdl = TCTFlowShop(data, mdl)
     if problemType == "Parallelmachine":
-        mdl = parallelmachinemodel(data, mdl)
+        mdl = ParallelMachine(data, mdl)
     return mdl

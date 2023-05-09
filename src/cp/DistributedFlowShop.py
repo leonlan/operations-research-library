@@ -6,7 +6,7 @@ from .constraints import add_task_interval_variables
 from .constraints.minimize_makespan import minimize_makespan
 
 
-def Distributedflowshopmodel(data):
+def DistributedFlowShop(data):
     mdl = docp.CpoModel()
 
     jobs = range(data.num_jobs)

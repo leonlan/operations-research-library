@@ -1,15 +1,15 @@
-from src.cp.Distributedflowshopmodel import Distributedflowshopmodel
-from src.cp.flowshopmodel import flowshopmodel
-from src.cp.parallelmachinemodel import parallelmachinemodel
-from src.cp.Setupflowshopmodel import Setupflowshopmodel
-from src.cp.Tardinessflowshopmodel import Tardinessflowshopmodel
-from src.cp.TCTflowshopmodel import TCTflowshopmodel
+from src.cp.DistributedFlowShop import DistributedFlowShop
+from src.cp.FlowShop import FlowShop
+from src.cp.ParallelMachine import ParallelMachine
+from src.cp.SetupFlowShop import SetupFlowShop
+from src.cp.TardinessFlowShop import TardinessFlowShop
+from src.cp.TCTFlowShop import TCTFlowShop
 
 CP_MODELS = {
-    "Flowshop": flowshopmodel,
-    "Distributedflowshop": Distributedflowshopmodel,
-    "Setupflowshop": Setupflowshopmodel,
-    "Tardinessflowshop": Tardinessflowshopmodel,
-    "TCTflowshop": TCTflowshopmodel,
-    "Parallelmachine": parallelmachinemodel,
+    "Flowshop": FlowShop,
+    "Distributedflowshop": DistributedFlowShop,
+    "Setupflowshop": SetupFlowShop,
+    "Tardinessflowshop": TardinessFlowShop,
+    "TCTflowshop": TCTFlowShop,
+    "Parallelmachine": ParallelMachine,
 }
