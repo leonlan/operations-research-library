@@ -12,7 +12,7 @@ def main(
         ProblemType.PARALLEL_MACHINE, case_sensitive=False
     ),
     model_type: str = "cp",
-    time_limit: int = 4,
+    time_limit: int = 3,
     solver: str = "cplex",
     num_procs: int = 1,
     out_dir: Optional[str] = "tmp/",

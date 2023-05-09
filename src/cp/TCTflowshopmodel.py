@@ -1,38 +1,10 @@
-def TCTflowshopmodel(data, mdl):
-    tasks = [[]] * data.n
-    for j in range(data.n):
-        tasks[j] = [[]] * data.g
+from .base_model import base_model
 
-    for j in range(data.n):
-        for i in range(data.g):
-            tasks[j][i] = mdl.interval_var(
-                name="T_{}_{}".format(j, i), size=data.p[j][i]
-            )  # interval variable
 
-    for j in range(data.n):
-        for i in range(1, data.g):
-            mdl.add(
-                mdl.end_before_start(tasks[j][i - 1], tasks[j][i])
-            )  # no overlap jobs
+def TCTflowshopmodel(data):
+    mdl, tasks, _ = base_model(data)
 
-    Sequence_variable = [[]] * data.g
-    for i in range(data.g):
-        Sequence_variable[i] = mdl.sequence_var(
-            [tasks[j][i] for j in range(data.n)]
-        )
-
-    for i in range(data.g):
-        mdl.add(mdl.no_overlap(Sequence_variable[i]))  # no overlap machines
-
-    for i in range(data.g - 1):
-        mdl.add(
-            mdl.same_sequence(Sequence_variable[i], Sequence_variable[i + 1])
-        )
-
-    mdl.add(
-        mdl.minimize(
-            mdl.sum([mdl.end_of(tasks[j][data.g - 1]) for j in range(data.n)])
-        )
-    )  # this is total tardiness
+    completion_times = [mdl.end_of(tasks[j][-1]) for j in range(data.num_jobs)]
+    mdl.add(mdl.minimize(mdl.sum(completion_times)))
 
     return mdl
