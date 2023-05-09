@@ -21,18 +21,27 @@ def parallelmachinemodel(data, mdl):
     return mdl
     """
 
-    machine = [mdl.integer_var(min=0, max=data.g - 1) for _ in range(data.n)]
-    duration = [mdl.element(data.p[j], machine[j]) for j in range(data.n)]
+    machine = [
+        mdl.integer_var(min=0, max=data.machines - 1) for _ in range(data.jobs)
+    ]
+    duration = [
+        mdl.element(data.processing[j], machine[j]) for j in range(data.jobs)
+    ]
 
     makespan = max(
         [
-            sum([data.p[j][i] * (machine[j] == i) for j in range(data.n)])
-            for i in range(data.g)
+            sum(
+                [
+                    data.processing[j][i] * (machine[j] == i)
+                    for j in range(data.jobs)
+                ]
+            )
+            for i in range(data.machines)
         ]
     )
 
-    lhs = sum([duration[j] for j in range(data.n)])
-    mdl.add(lhs <= data.g * makespan)
+    lhs = sum([duration[j] for j in range(data.jobs)])
+    mdl.add(lhs <= data.machines * makespan)
 
     mdl.add(docp.minimize(makespan))
 

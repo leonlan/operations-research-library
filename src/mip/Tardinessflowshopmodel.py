@@ -5,8 +5,8 @@ def Tardinessflowshopmodel(data, mdl):
     # Variable X
     names = [
         "X_{}_{}".format(j, j1)
-        for j in range(data.n)
-        for j1 in range(j + 1, data.n)
+        for j in range(data.jobs)
+        for j1 in range(j + 1, data.jobs)
     ]
     objective = [0] * len(names)
     lower_bounds = [0] * len(names)
@@ -14,19 +14,21 @@ def Tardinessflowshopmodel(data, mdl):
     types = ["B"] * len(names)
     # Variable C
     names += [
-        "C_{}_{}".format(j, i) for j in range(data.n) for i in range(data.g)
+        "C_{}_{}".format(j, i)
+        for j in range(data.jobs)
+        for i in range(data.machines)
     ]
-    objective += [0] * data.n * data.g
-    lower_bounds += [0] * data.n * data.g
-    upper_bounds += [V] * data.n * data.g
-    types += ["C"] * data.n * data.g
+    objective += [0] * data.jobs * data.machines
+    lower_bounds += [0] * data.jobs * data.machines
+    upper_bounds += [V] * data.jobs * data.machines
+    types += ["C"] * data.jobs * data.machines
 
     # Variable T
-    names += ["T_{}".format(j) for j in range(data.n)]
-    objective += [1] * data.n
-    lower_bounds += [0] * data.n
-    upper_bounds += [V] * data.n
-    types += ["C"] * data.n
+    names += ["T_{}".format(j) for j in range(data.jobs)]
+    objective += [1] * data.jobs
+    lower_bounds += [0] * data.jobs
+    upper_bounds += [V] * data.jobs
+    types += ["C"] * data.jobs
 
     ###### constraints ########
     constraints = []
@@ -34,55 +36,55 @@ def Tardinessflowshopmodel(data, mdl):
     rhs = []
 
     # constraint 1
-    for j in range(data.n):
+    for j in range(data.jobs):
         variables = ["C_{}_{}".format(j, 0)]
         coffiecient = [1]
         constraints.append([variables, coffiecient])
         senses.append("G")
-        rhs.append(data.p[j][0])
+        rhs.append(data.processing[j][0])
 
     # constraint 2
-    for j in range(data.n):
-        for i in range(1, data.g):
+    for j in range(data.jobs):
+        for i in range(1, data.machines):
             variables = ["C_{}_{}".format(j, i)]
             variables += ["C_{}_{}".format(j, i - 1)]
             coffiecient = [1, -1]
             constraints.append([variables, coffiecient])
             senses.append("G")
-            rhs.append(data.p[j][i])
+            rhs.append(data.processing[j][i])
 
     # constraint 3
-    for j in range(data.n - 1):
-        for j1 in range(j + 1, data.n):
-            for i in range(data.g):
+    for j in range(data.jobs - 1):
+        for j1 in range(j + 1, data.jobs):
+            for i in range(data.machines):
                 variables = ["C_{}_{}".format(j, i)]
                 variables += ["C_{}_{}".format(j1, i)]
                 variables += ["X_{}_{}".format(j, j1)]
                 coffiecient = [1, -1, -M]
                 constraints.append([variables, coffiecient])
                 senses.append("G")
-                rhs.append(data.p[j][i] - M)
+                rhs.append(data.processing[j][i] - M)
 
     # constraint 4
-    for j in range(data.n - 1):
-        for j1 in range(j + 1, data.n):
-            for i in range(data.g):
+    for j in range(data.jobs - 1):
+        for j1 in range(j + 1, data.jobs):
+            for i in range(data.machines):
                 variables = ["C_{}_{}".format(j1, i)]
                 variables += ["C_{}_{}".format(j, i)]
                 variables += ["X_{}_{}".format(j, j1)]
                 coffiecient = [1, -1, M]
                 constraints.append([variables, coffiecient])
                 senses.append("G")
-                rhs.append(data.p[j1][i])
+                rhs.append(data.processing[j1][i])
 
     # constraint 5
-    for j in range(data.n):
+    for j in range(data.jobs):
         variables = ["T_{}".format(j)]
-        variables += ["C_{}_{}".format(j, data.g - 1)]
+        variables += ["C_{}_{}".format(j, data.machines - 1)]
         coffiecient = [1, -1]
         constraints.append([variables, coffiecient])
         senses.append("G")
-        rhs.append(-1 * data.d[j])
+        rhs.append(-1 * data.due_dates[j])
 
     mdl.variables.add(
         obj=objective,

@@ -1,7 +1,10 @@
+from .constraints import add_task_interval_variables
+
+
 def Distributedflowshopmodel(data, mdl):
-    jobs = range(data.n)
-    stages = range(data.g)
-    factories = range(data.f)
+    jobs = range(data.jobs)
+    stages = range(data.machines)
+    factories = range(data.factories)
 
     tasks = [[] for _ in jobs]
     for j in jobs:
@@ -13,15 +16,12 @@ def Distributedflowshopmodel(data, mdl):
                 mdl.interval_var(
                     name=f"A_{j}_{i}_{k}",
                     optional=True,
-                    size=data.p[j][i],
+                    size=data.processing[j][i],
                 )
                 for k in factories
             ]
 
-    _tasks = [[] for _ in jobs]
-
-    for j in jobs:
-        _tasks[j] = [mdl.interval_var(name=f"T_{j}_{i}") for i in stages]
+    _tasks = add_task_interval_variables(data, mdl)
 
     for j in jobs:
         for i in stages:
@@ -30,15 +30,15 @@ def Distributedflowshopmodel(data, mdl):
             mdl.add(expr)
 
     for j in jobs:
-        for i in range(1, data.g):
+        for i in range(1, data.machines):
             for k in factories:
                 lhs = mdl.presence_of(tasks[j][i][k])
                 rhs = mdl.presence_of(tasks[j][0][k])
                 mdl.add(lhs >= rhs)
 
-    seq_var = [[]] * data.g
+    seq_var = [[]] * data.machines
     for i in stages:
-        seq_var[i] = [[]] * data.f
+        seq_var[i] = [[]] * data.factories
         for k in factories:
             seq_var[i][k] = mdl.sequence_var([tasks[j][i][k] for j in jobs])
 
@@ -46,15 +46,17 @@ def Distributedflowshopmodel(data, mdl):
         for k in factories:
             mdl.add(mdl.no_overlap(seq_var[i][k]))  # no overlap machines
 
-    for i in range(data.g - 1):
+    for i in range(data.machines - 1):
         for k in factories:
             mdl.add(mdl.same_sequence(seq_var[i][k], seq_var[i + 1][k]))
 
     for j in jobs:
-        for i in range(1, data.g):
+        for i in range(1, data.machines):
             mdl.add(mdl.end_before_start(_tasks[j][i - 1], _tasks[j][i]))
 
-    makespan = mdl.max([mdl.end_of(_tasks[j][data.g - 1]) for j in jobs])
+    makespan = mdl.max(
+        [mdl.end_of(_tasks[j][data.machines - 1]) for j in jobs]
+    )
     mdl.add(mdl.minimize(makespan))
 
     return mdl

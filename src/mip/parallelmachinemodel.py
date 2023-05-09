@@ -4,7 +4,9 @@ from .constants import V
 def parallelmachinemodel(data, mdl):
     # Variable Y
     names = [
-        "Y_{}_{}".format(j, i) for j in range(data.n) for i in range(data.g)
+        "Y_{}_{}".format(j, i)
+        for j in range(data.jobs)
+        for i in range(data.machines)
     ]
     objective = [0] * len(names)
     lower_bounds = [0] * len(names)
@@ -23,19 +25,19 @@ def parallelmachinemodel(data, mdl):
     rhs = []
 
     # constraint 1
-    for j in range(data.n):
-        variables = ["Y_{}_{}".format(j, i) for i in range(data.g)]
-        coffiecient = [1] * data.g
+    for j in range(data.jobs):
+        variables = ["Y_{}_{}".format(j, i) for i in range(data.machines)]
+        coffiecient = [1] * data.machines
         constraints.append([variables, coffiecient])
         senses.append("E")
         rhs.append(1)
 
     # constraint 2
-    for i in range(data.g):
+    for i in range(data.machines):
         variables = ["C_max"]
         coffiecient = [1]
-        variables += ["Y_{}_{}".format(j, i) for j in range(data.n)]
-        coffiecient += [-1 * data.p[j][i] for j in range(data.n)]
+        variables += ["Y_{}_{}".format(j, i) for j in range(data.jobs)]
+        coffiecient += [-1 * data.processing[j][i] for j in range(data.jobs)]
         constraints.append([variables, coffiecient])
         senses.append("G")
         rhs.append(0)

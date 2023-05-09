@@ -14,7 +14,7 @@ def flowshopmodel(data, mdl):
     all_machines_same_sequence(data, machine_sequence, mdl)
 
     makespan = mdl.max(
-        [mdl.end_of(tasks[j][data.g - 1]) for j in range(data.n)]
+        [mdl.end_of(tasks[j][data.machines - 1]) for j in range(data.jobs)]
     )
     mdl.add(mdl.minimize(makespan))
 

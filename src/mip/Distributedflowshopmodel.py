@@ -2,9 +2,9 @@ from .constants import M, V
 
 
 def Distributedflowshopmodel(data, mdl):
-    jobs = range(data.n)
-    stages = range(data.g)
-    factories = range(data.f)
+    jobs = range(data.jobs)
+    stages = range(data.machines)
+    factories = range(data.factories)
 
     # Variable Y
     names = [f"Y_{j}_{k}" for j in jobs for k in factories]
@@ -14,18 +14,18 @@ def Distributedflowshopmodel(data, mdl):
     types = ["B"] * len(names)
 
     # Variable X
-    names += [f"X_{j}_{j1}" for j in jobs for j1 in range(j + 1, data.n)]
-    objective += [0 for j in jobs for _ in range(j + 1, data.n)]
-    lower_bounds += [0 for j in jobs for _ in range(j + 1, data.n)]
-    upper_bounds += [1 for j in jobs for _ in range(j + 1, data.n)]
-    types += ["B" for j in jobs for _ in range(j + 1, data.n)]
+    names += [f"X_{j}_{j1}" for j in jobs for j1 in range(j + 1, data.jobs)]
+    objective += [0 for j in jobs for _ in range(j + 1, data.jobs)]
+    lower_bounds += [0 for j in jobs for _ in range(j + 1, data.jobs)]
+    upper_bounds += [1 for j in jobs for _ in range(j + 1, data.jobs)]
+    types += ["B" for j in jobs for _ in range(j + 1, data.jobs)]
 
     # Variable C
     names += [f"C_{j}_{i}" for j in jobs for i in stages]
-    objective += [0] * data.n * data.g
-    lower_bounds += [0] * data.n * data.g
-    upper_bounds += [V] * data.n * data.g
-    types += ["C"] * data.n * data.g
+    objective += [0] * data.jobs * data.machines
+    lower_bounds += [0] * data.jobs * data.machines
+    upper_bounds += [V] * data.jobs * data.machines
+    types += ["C"] * data.jobs * data.machines
 
     # Variable Cmax
     names += ["C_max"]
@@ -41,7 +41,7 @@ def Distributedflowshopmodel(data, mdl):
     # constraint 1
     for j in jobs:
         variables = [f"Y_{j}_{k}" for k in factories]
-        coffiecient = [1] * data.f
+        coffiecient = [1] * data.factories
         constraints.append([variables, coffiecient])
         senses.append("E")
         rhs.append(1)
@@ -52,21 +52,21 @@ def Distributedflowshopmodel(data, mdl):
         coffiecient = [1]
         constraints.append([variables, coffiecient])
         senses.append("G")
-        rhs.append(data.p[j][0])
+        rhs.append(data.processing[j][0])
 
     # constraint 2-2
     for j in jobs:
-        for i in range(1, data.g):
+        for i in range(1, data.machines):
             variables = [f"C_{j}_{i}"]
             variables += [f"C_{j}_{i - 1}"]
             coffiecient = [1, -1]
             constraints.append([variables, coffiecient])
             senses.append("G")
-            rhs.append(data.p[j][i])
+            rhs.append(data.processing[j][i])
 
     # constraint 3
-    for j in range(data.n - 1):
-        for j1 in range(j + 1, data.n):
+    for j in range(data.jobs - 1):
+        for j1 in range(j + 1, data.jobs):
             for i in stages:
                 for k in factories:
                     variables = [f"C_{j}_{i}"]
@@ -77,10 +77,10 @@ def Distributedflowshopmodel(data, mdl):
                     coffiecient = [1, -1, -M, -M, -M]
                     constraints.append([variables, coffiecient])
                     senses.append("G")
-                    rhs.append(data.p[j][i] - 3 * M)
+                    rhs.append(data.processing[j][i] - 3 * M)
 
-    for j in range(data.n - 1):
-        for j1 in range(j + 1, data.n):
+    for j in range(data.jobs - 1):
+        for j1 in range(j + 1, data.jobs):
             for i in stages:
                 for k in factories:
                     variables = [f"C_{j1}_{i}"]
@@ -91,11 +91,11 @@ def Distributedflowshopmodel(data, mdl):
                     coffiecient = [1, -1, M, -M, -M]
                     constraints.append([variables, coffiecient])
                     senses.append("G")
-                    rhs.append(data.p[j1][i] - 2 * M)
+                    rhs.append(data.processing[j1][i] - 2 * M)
 
     for j in jobs:
         variables = ["C_max"]
-        variables += [f"C_{j}_{data.g - 1}"]
+        variables += [f"C_{j}_{data.machines - 1}"]
         coffiecient = [1, -1]
         constraints.append([variables, coffiecient])
         senses.append("G")
