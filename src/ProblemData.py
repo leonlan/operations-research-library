@@ -22,6 +22,13 @@ class ProblemData:
 
     @classmethod
     def from_file(cls, fname: Union[str, os.PathLike], problem_type: str):
+        """
+        Reads problem data from file.
+
+        Note that the files are benchmark instances from the literature.
+        They follow a specific format, which requires the if statements
+        to be organized as they are.
+        """
         data = {}
 
         def read_line(fh):
@@ -34,11 +41,12 @@ class ProblemData:
             if problem_type == "Distributedflowshop":
                 data["num_factories"] = read_line(fh)[0]
 
+            if problem_type == "Tardinessflowshop":
+                data["due_dates"] = read_line(fh)
+
             data["processing"] = [
                 read_line(fh) for _ in range(data["num_jobs"])
             ]
-            if problem_type == "Tardinessflowshop":
-                data["due_dates"] = read_line(fh)
 
             if problem_type == "Setupflowshop":
                 data["setup"] = [
