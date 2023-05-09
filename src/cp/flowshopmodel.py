@@ -1,38 +1,21 @@
+from .constraints import add_task_interval_variables
+from .constraints.add_sequence_variables import add_sequence_variables
+from .constraints.all_machines_same_sequence import all_machines_same_sequence
+from .constraints.no_overlap_jobs import no_overlap_jobs
+from .constraints.no_overlap_machines import no_overlap_machines
+
+
 def flowshopmodel(data, mdl):
-    tasks = [[]] * data.n
-    for j in range(data.n):
-        tasks[j] = [[]] * data.g
+    tasks = add_task_interval_variables(data, mdl)
+    no_overlap_jobs(data, mdl, tasks)
 
-    for j in range(data.n):
-        for i in range(data.g):
-            tasks[j][i] = mdl.interval_var(
-                name="T_{}_{}".format(j, i), size=data.p[j][i]
-            )  # interval variable
+    machine_sequence = add_sequence_variables(data, mdl, tasks)
+    no_overlap_machines(data, machine_sequence, mdl)
+    all_machines_same_sequence(data, machine_sequence, mdl)
 
-    for j in range(data.n):
-        for i in range(1, data.g):
-            mdl.add(
-                mdl.end_before_start(tasks[j][i - 1], tasks[j][i])
-            )  # no overlap jobs
-
-    Sequence_variable = [[]] * data.g
-    for i in range(data.g):
-        Sequence_variable[i] = mdl.sequence_var(
-            [tasks[j][i] for j in range(data.n)]
-        )
-
-    for i in range(data.g):
-        mdl.add(mdl.no_overlap(Sequence_variable[i]))  # no overlap machines
-
-    for i in range(data.g - 1):
-        mdl.add(
-            mdl.same_sequence(Sequence_variable[i], Sequence_variable[i + 1])
-        )
-
-    mdl.add(
-        mdl.minimize(
-            mdl.max([mdl.end_of(tasks[j][data.g - 1]) for j in range(data.n)])
-        )
-    )  # this is makespan
+    makespan = mdl.max(
+        [mdl.end_of(tasks[j][data.g - 1]) for j in range(data.n)]
+    )
+    mdl.add(mdl.minimize(makespan))
 
     return mdl

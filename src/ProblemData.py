@@ -27,6 +27,7 @@ class ProblemData:
                 data.d = [int(x) for x in data.readline().strip().split()]
 
             data.p = [[int(x) for x in data.readline().strip().split()]]
+
             for _j in range(data.n - 1):
                 data.p.append(
                     [int(x) for x in data.readline().strip().split()]

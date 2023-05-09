@@ -2,30 +2,26 @@ from .constants import M, V
 
 
 def Distributedflowshopmodel(data, mdl):
+    jobs = range(data.n)
+    stages = range(data.g)
+    factories = range(data.f)
+
     # Variable Y
-    names = [
-        "Y_{}_{}".format(j, k) for j in range(data.n) for k in range(data.f)
-    ]
+    names = [f"Y_{j}_{k}" for j in jobs for k in factories]
     objective = [0] * len(names)
     lower_bounds = [0] * len(names)
     upper_bounds = [1] * len(names)
     types = ["B"] * len(names)
 
     # Variable X
-    names += [
-        "X_{}_{}".format(j, j1)
-        for j in range(data.n)
-        for j1 in range(j + 1, data.n)
-    ]
-    objective += [0 for j in range(data.n) for _ in range(j + 1, data.n)]
-    lower_bounds += [0 for j in range(data.n) for _ in range(j + 1, data.n)]
-    upper_bounds += [1 for j in range(data.n) for _ in range(j + 1, data.n)]
-    types += ["B" for j in range(data.n) for _ in range(j + 1, data.n)]
+    names += [f"X_{j}_{j1}" for j in jobs for j1 in range(j + 1, data.n)]
+    objective += [0 for j in jobs for _ in range(j + 1, data.n)]
+    lower_bounds += [0 for j in jobs for _ in range(j + 1, data.n)]
+    upper_bounds += [1 for j in jobs for _ in range(j + 1, data.n)]
+    types += ["B" for j in jobs for _ in range(j + 1, data.n)]
 
     # Variable C
-    names += [
-        "C_{}_{}".format(j, i) for j in range(data.n) for i in range(data.g)
-    ]
+    names += [f"C_{j}_{i}" for j in jobs for i in stages]
     objective += [0] * data.n * data.g
     lower_bounds += [0] * data.n * data.g
     upper_bounds += [V] * data.n * data.g
@@ -43,26 +39,26 @@ def Distributedflowshopmodel(data, mdl):
     rhs = []
 
     # constraint 1
-    for j in range(data.n):
-        variables = ["Y_{}_{}".format(j, k) for k in range(data.f)]
+    for j in jobs:
+        variables = [f"Y_{j}_{k}" for k in factories]
         coffiecient = [1] * data.f
         constraints.append([variables, coffiecient])
         senses.append("E")
         rhs.append(1)
 
     # constraint 2-1
-    for j in range(data.n):
-        variables = ["C_{}_{}".format(j, 0)]
+    for j in jobs:
+        variables = [f"C_{j}_0"]
         coffiecient = [1]
         constraints.append([variables, coffiecient])
         senses.append("G")
         rhs.append(data.p[j][0])
 
     # constraint 2-2
-    for j in range(data.n):
+    for j in jobs:
         for i in range(1, data.g):
-            variables = ["C_{}_{}".format(j, i)]
-            variables += ["C_{}_{}".format(j, i - 1)]
+            variables = [f"C_{j}_{i}"]
+            variables += [f"C_{j}_{i - 1}"]
             coffiecient = [1, -1]
             constraints.append([variables, coffiecient])
             senses.append("G")
@@ -71,36 +67,35 @@ def Distributedflowshopmodel(data, mdl):
     # constraint 3
     for j in range(data.n - 1):
         for j1 in range(j + 1, data.n):
-            for i in range(data.g):
-                for k in range(data.f):
-                    variables = ["C_{}_{}".format(j, i)]
-                    variables += ["C_{}_{}".format(j1, i)]
-                    variables += ["X_{}_{}".format(j, j1)]
-                    variables += ["Y_{}_{}".format(j, k)]
-                    variables += ["Y_{}_{}".format(j1, k)]
+            for i in stages:
+                for k in factories:
+                    variables = [f"C_{j}_{i}"]
+                    variables += [f"C_{j1}_{i}"]
+                    variables += [f"X_{j}_{j1}"]
+                    variables += [f"Y_{j}_{k}"]
+                    variables += [f"Y_{j1}_{k}"]
                     coffiecient = [1, -1, -M, -M, -M]
                     constraints.append([variables, coffiecient])
                     senses.append("G")
                     rhs.append(data.p[j][i] - 3 * M)
 
-    # constraint 4
     for j in range(data.n - 1):
         for j1 in range(j + 1, data.n):
-            for i in range(data.g):
-                for k in range(data.f):
-                    variables = ["C_{}_{}".format(j1, i)]
-                    variables += ["C_{}_{}".format(j, i)]
-                    variables += ["X_{}_{}".format(j, j1)]
-                    variables += ["Y_{}_{}".format(j, k)]
-                    variables += ["Y_{}_{}".format(j1, k)]
+            for i in stages:
+                for k in factories:
+                    variables = [f"C_{j1}_{i}"]
+                    variables += [f"C_{j}_{i}"]
+                    variables += [f"X_{j}_{j1}"]
+                    variables += [f"Y_{j}_{k}"]
+                    variables += [f"Y_{j1}_{k}"]
                     coffiecient = [1, -1, M, -M, -M]
                     constraints.append([variables, coffiecient])
                     senses.append("G")
                     rhs.append(data.p[j1][i] - 2 * M)
 
-    for j in range(data.n):
+    for j in jobs:
         variables = ["C_max"]
-        variables += ["C_{}_{}".format(j, data.g - 1)]
+        variables += [f"C_{j}_{data.g - 1}"]
         coffiecient = [1, -1]
         constraints.append([variables, coffiecient])
         senses.append("G")
@@ -113,6 +108,7 @@ def Distributedflowshopmodel(data, mdl):
         names=names,
         types=types,
     )
+
     mdl.linear_constraints.add(lin_expr=constraints, senses=senses, rhs=rhs)
     mdl.objective.set_sense(mdl.objective.sense.minimize)
     return mdl
