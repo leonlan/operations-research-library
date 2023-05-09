@@ -1,14 +1,8 @@
 from .base_model import base_model
+from .constraints.minimize_total_tardiness import minimize_total_tardiness
 
 
 def Tardinessflowshopmodel(data):
     mdl, tasks, _ = base_model(data)
-
-    tardiness = []
-    for j in range(data.num_jobs):
-        lateness = mdl.end_of(tasks[j][-1]) - data.due_dates[j]
-        tardiness.append(mdl.max([lateness, 0]))
-
-    mdl.add(mdl.minimize(mdl.sum(tardiness)))
-
+    minimize_total_tardiness(data, mdl, tasks)
     return mdl
