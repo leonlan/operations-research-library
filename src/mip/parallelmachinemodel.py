@@ -5,8 +5,8 @@ def parallelmachinemodel(data, mdl):
     # Variable Y
     names = [
         "Y_{}_{}".format(j, i)
-        for j in range(data.jobs)
-        for i in range(data.machines)
+        for j in range(data.num_jobs)
+        for i in range(data.num_machines)
     ]
     objective = [0] * len(names)
     lower_bounds = [0] * len(names)
@@ -25,19 +25,21 @@ def parallelmachinemodel(data, mdl):
     rhs = []
 
     # constraint 1
-    for j in range(data.jobs):
-        variables = ["Y_{}_{}".format(j, i) for i in range(data.machines)]
-        coffiecient = [1] * data.machines
+    for j in range(data.num_jobs):
+        variables = ["Y_{}_{}".format(j, i) for i in range(data.num_machines)]
+        coffiecient = [1] * data.num_machines
         constraints.append([variables, coffiecient])
         senses.append("E")
         rhs.append(1)
 
     # constraint 2
-    for i in range(data.machines):
+    for i in range(data.num_machines):
         variables = ["C_max"]
         coffiecient = [1]
-        variables += ["Y_{}_{}".format(j, i) for j in range(data.jobs)]
-        coffiecient += [-1 * data.processing[j][i] for j in range(data.jobs)]
+        variables += ["Y_{}_{}".format(j, i) for j in range(data.num_jobs)]
+        coffiecient += [
+            -1 * data.processing[j][i] for j in range(data.num_jobs)
+        ]
         constraints.append([variables, coffiecient])
         senses.append("G")
         rhs.append(0)

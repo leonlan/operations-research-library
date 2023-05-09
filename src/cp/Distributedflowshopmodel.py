@@ -2,9 +2,9 @@ from .constraints import add_task_interval_variables
 
 
 def Distributedflowshopmodel(data, mdl):
-    jobs = range(data.jobs)
-    stages = range(data.machines)
-    factories = range(data.factories)
+    jobs = range(data.num_jobs)
+    stages = range(data.num_machines)
+    factories = range(data.num_factories)
 
     tasks = [[] for _ in jobs]
     for j in jobs:
@@ -30,15 +30,15 @@ def Distributedflowshopmodel(data, mdl):
             mdl.add(expr)
 
     for j in jobs:
-        for i in range(1, data.machines):
+        for i in range(1, data.num_machines):
             for k in factories:
                 lhs = mdl.presence_of(tasks[j][i][k])
                 rhs = mdl.presence_of(tasks[j][0][k])
                 mdl.add(lhs >= rhs)
 
-    seq_var = [[]] * data.machines
+    seq_var = [[]] * data.num_machines
     for i in stages:
-        seq_var[i] = [[]] * data.factories
+        seq_var[i] = [[]] * data.num_factories
         for k in factories:
             seq_var[i][k] = mdl.sequence_var([tasks[j][i][k] for j in jobs])
 
@@ -46,16 +46,16 @@ def Distributedflowshopmodel(data, mdl):
         for k in factories:
             mdl.add(mdl.no_overlap(seq_var[i][k]))  # no overlap machines
 
-    for i in range(data.machines - 1):
+    for i in range(data.num_machines - 1):
         for k in factories:
             mdl.add(mdl.same_sequence(seq_var[i][k], seq_var[i + 1][k]))
 
     for j in jobs:
-        for i in range(1, data.machines):
+        for i in range(1, data.num_machines):
             mdl.add(mdl.end_before_start(_tasks[j][i - 1], _tasks[j][i]))
 
     makespan = mdl.max(
-        [mdl.end_of(_tasks[j][data.machines - 1]) for j in jobs]
+        [mdl.end_of(_tasks[j][data.num_machines - 1]) for j in jobs]
     )
     mdl.add(mdl.minimize(makespan))
 

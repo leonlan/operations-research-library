@@ -2,9 +2,9 @@ from .constants import M, V
 
 
 def Distributedflowshopmodel(data, mdl):
-    jobs = range(data.jobs)
-    stages = range(data.machines)
-    factories = range(data.factories)
+    jobs = range(data.num_jobs)
+    stages = range(data.num_machines)
+    factories = range(data.num_factories)
 
     # Variable Y
     names = [f"Y_{j}_{k}" for j in jobs for k in factories]
@@ -14,18 +14,20 @@ def Distributedflowshopmodel(data, mdl):
     types = ["B"] * len(names)
 
     # Variable X
-    names += [f"X_{j}_{j1}" for j in jobs for j1 in range(j + 1, data.jobs)]
-    objective += [0 for j in jobs for _ in range(j + 1, data.jobs)]
-    lower_bounds += [0 for j in jobs for _ in range(j + 1, data.jobs)]
-    upper_bounds += [1 for j in jobs for _ in range(j + 1, data.jobs)]
-    types += ["B" for j in jobs for _ in range(j + 1, data.jobs)]
+    names += [
+        f"X_{j}_{j1}" for j in jobs for j1 in range(j + 1, data.num_jobs)
+    ]
+    objective += [0 for j in jobs for _ in range(j + 1, data.num_jobs)]
+    lower_bounds += [0 for j in jobs for _ in range(j + 1, data.num_jobs)]
+    upper_bounds += [1 for j in jobs for _ in range(j + 1, data.num_jobs)]
+    types += ["B" for j in jobs for _ in range(j + 1, data.num_jobs)]
 
     # Variable C
     names += [f"C_{j}_{i}" for j in jobs for i in stages]
-    objective += [0] * data.jobs * data.machines
-    lower_bounds += [0] * data.jobs * data.machines
-    upper_bounds += [V] * data.jobs * data.machines
-    types += ["C"] * data.jobs * data.machines
+    objective += [0] * data.num_jobs * data.num_machines
+    lower_bounds += [0] * data.num_jobs * data.num_machines
+    upper_bounds += [V] * data.num_jobs * data.num_machines
+    types += ["C"] * data.num_jobs * data.num_machines
 
     # Variable Cmax
     names += ["C_max"]
@@ -41,7 +43,7 @@ def Distributedflowshopmodel(data, mdl):
     # constraint 1
     for j in jobs:
         variables = [f"Y_{j}_{k}" for k in factories]
-        coffiecient = [1] * data.factories
+        coffiecient = [1] * data.num_factories
         constraints.append([variables, coffiecient])
         senses.append("E")
         rhs.append(1)
@@ -56,7 +58,7 @@ def Distributedflowshopmodel(data, mdl):
 
     # constraint 2-2
     for j in jobs:
-        for i in range(1, data.machines):
+        for i in range(1, data.num_machines):
             variables = [f"C_{j}_{i}"]
             variables += [f"C_{j}_{i - 1}"]
             coffiecient = [1, -1]
@@ -65,8 +67,8 @@ def Distributedflowshopmodel(data, mdl):
             rhs.append(data.processing[j][i])
 
     # constraint 3
-    for j in range(data.jobs - 1):
-        for j1 in range(j + 1, data.jobs):
+    for j in range(data.num_jobs - 1):
+        for j1 in range(j + 1, data.num_jobs):
             for i in stages:
                 for k in factories:
                     variables = [f"C_{j}_{i}"]
@@ -79,8 +81,8 @@ def Distributedflowshopmodel(data, mdl):
                     senses.append("G")
                     rhs.append(data.processing[j][i] - 3 * M)
 
-    for j in range(data.jobs - 1):
-        for j1 in range(j + 1, data.jobs):
+    for j in range(data.num_jobs - 1):
+        for j1 in range(j + 1, data.num_jobs):
             for i in stages:
                 for k in factories:
                     variables = [f"C_{j1}_{i}"]
@@ -95,7 +97,7 @@ def Distributedflowshopmodel(data, mdl):
 
     for j in jobs:
         variables = ["C_max"]
-        variables += [f"C_{j}_{data.machines - 1}"]
+        variables += [f"C_{j}_{data.num_machines - 1}"]
         coffiecient = [1, -1]
         constraints.append([variables, coffiecient])
         senses.append("G")

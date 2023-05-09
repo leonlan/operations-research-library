@@ -34,8 +34,6 @@ def main(
             result = f"{problem_type}\t{solver}\t{model_type}\t{path.stem}\t{num_jobs}\t{num_stages}\t{lb}\t{ub}\t{gap}\t{time}"
             fh.write(result)
 
-            print(result)
-
 
 if __name__ == "__main__":
     typer.run(main)

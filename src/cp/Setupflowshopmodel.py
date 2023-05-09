@@ -12,7 +12,7 @@ def Setupflowshopmodel(data, mdl):
     machine_sequence = add_sequence_variables(data, mdl, tasks)
     all_machines_same_sequence(data, machine_sequence, mdl)
 
-    for i in range(data.machines):
+    for i in range(data.num_machines):
         mdl.add(mdl.no_overlap(machine_sequence[i], data.setup[i]))
 
     minimize_makespan(data, mdl, tasks)

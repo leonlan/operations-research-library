@@ -69,17 +69,24 @@ def main(
     if isinstance(x, int) is True or isinstance(x, float) is True:
         if y != 0:
             return (
-                data.jobs,
-                data.machines,
+                data.num_jobs,
+                data.num_machines,
                 time_elapsed,
                 x,
                 y,
                 np.round(100 * (y - x) / y),
             )
         else:
-            return data.jobs, data.machines, time_elapsed, x, y, 0
+            return data.num_jobs, data.num_machines, time_elapsed, x, y, 0
     else:
-        return data.jobs, data.machines, time_elapsed, x, y, "No solution"
+        return (
+            data.num_jobs,
+            data.num_machines,
+            time_elapsed,
+            x,
+            y,
+            "No solution",
+        )
 
 
 def Gurobi_solve(model, problemType, name, time_limit, NThreads, output):
@@ -178,9 +185,9 @@ def CPLEX_CP_solve(
                 )
             )
             if problemType != "Parallelmachine":
-                for j in range(data.jobs):
+                for j in range(data.num_jobs):
                     fh.write("\n")
-                    q = data.machines
+                    q = data.num_machines
                     if problemType != "Parallelmachine":
                         for i in range(q):
                             var = msol.get_var_solution("T_{}_{}".format(j, i))
