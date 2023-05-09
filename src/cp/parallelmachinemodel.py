@@ -1,6 +1,3 @@
-from docplex.cp import model as docp
-
-
 def parallelmachinemodel(data, mdl):
     """
     tasks = [[]] * data.n
@@ -30,21 +27,17 @@ def parallelmachinemodel(data, mdl):
         for j in range(data.num_jobs)
     ]
 
-    makespan = max(
-        [
-            sum(
-                [
-                    data.processing[j][i] * (machine[j] == i)
-                    for j in range(data.num_jobs)
-                ]
-            )
-            for i in range(data.num_machines)
+    def load(i):
+        return [
+            data.processing[j][i] * (machine[j] == i)
+            for j in range(data.num_jobs)
         ]
-    )
+
+    makespan = max([sum(load(i)) for i in range(data.num_machines)])
 
     lhs = sum([duration[j] for j in range(data.num_jobs)])
     mdl.add(lhs <= data.num_machines * makespan)
 
-    mdl.add(docp.minimize(makespan))
+    mdl.add(mdl.minimize(makespan))
 
     return mdl

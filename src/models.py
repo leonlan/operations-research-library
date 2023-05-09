@@ -2,10 +2,9 @@ import time
 from pathlib import Path
 
 import cplex
-import docplex.cp.model as docp
 import gurobipy as grb
 import numpy as np
-from cp.modelCplexCP import CPmodel_generation
+from cp import CP_MODELS
 from mip.modelCplexMIP import MIPmodel_generation
 from ProblemData import ProblemData
 
@@ -52,8 +51,7 @@ def main(
 
     if modelType == "cp":
         if solver == "cplex":
-            model = docp.CpoModel()
-            model = CPmodel_generation(data, model, problemType)
+            model = CP_MODELS[problemType](data, model)
             x, y = CPLEX_CP_solve(
                 model,
                 problemType,
