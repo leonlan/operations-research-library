@@ -1,46 +1,49 @@
-class ProblemData:
-    def __init__(self):
-        self.n = 0  # jobs
-        self.g = 0  # stages
-        self.f = 0  # factories
+import os
+from typing import List, Optional, Union
 
-        # TODO rename these indices
-        self.o = []  # operations
-        self.p = []  # processing_times
-        self.r = []  # routes
-        self.m = []  # machine
-        self.d = []  # duedates
-        self.s = []  # setup
+
+class ProblemData:
+    def __init__(
+        self,
+        num_jobs: int,
+        num_machines: int,
+        processing: List[List[int]],
+        num_factories: int = 0,
+        due_dates: Optional[List[int]] = None,
+        setup: Optional[List[List[int]]] = None,
+    ):
+        self.num_jobs = num_jobs
+        self.num_machines = num_machines  # also: stages/units
+        self.processing = processing
+
+        self.num_factories = num_factories
+        self.due_dates = due_dates or []
+        self.setup = setup or []
 
     @classmethod
-    def from_file(cls, fname, problem_type):
-        data = cls()
+    def from_file(cls, fname: Union[str, os.PathLike], problem_type: str):
+        data = {}
 
-        with open(fname, "r") as data:
-            data.n = int(data.readline().strip().split()[0])
-            data.g = int(data.readline().strip().split()[0])
+        def read_line(fh):
+            return [int(x) for x in fh.readline().strip().split()]
+
+        with open(fname, "r") as fh:
+            data["num_jobs"] = read_line(fh)[0]
+            data["num_machines"] = read_line(fh)[0]
 
             if problem_type == "Distributedflowshop":
-                data.f = int(data.readline().strip().split()[0])
+                data["num_factories"] = read_line(fh)[0]
 
+            data["processing"] = [
+                read_line(fh) for _ in range(data["num_jobs"])
+            ]
             if problem_type == "Tardinessflowshop":
-                data.d = [int(x) for x in data.readline().strip().split()]
-
-            data.p = [[int(x) for x in data.readline().strip().split()]]
-            for _j in range(data.n - 1):
-                data.p.append(
-                    [int(x) for x in data.readline().strip().split()]
-                )
+                data["due_dates"] = read_line(fh)
 
             if problem_type == "Setupflowshop":
-                for i in range(data.g):
-                    data.s.append([])
-                    data.s[i] = [
-                        [int(x) for x in data.readline().strip().split()]
-                    ]
-                    for _j in range(data.n - 1):
-                        data.s[i].append(
-                            [int(x) for x in data.readline().strip().split()]
-                        )
+                data["setup"] = [
+                    [read_line(fh) for _ in range(data["num_jobs"])]
+                    for _ in range(data["num_machines"])
+                ]
 
-        return data
+        return cls(**data)
