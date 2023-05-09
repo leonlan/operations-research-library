@@ -1,8 +1,8 @@
 from .base_model import base_model
 
 
-def Tardinessflowshopmodel(data, mdl):
-    mdl, tasks, _ = base_model(data, mdl)
+def Tardinessflowshopmodel(data):
+    mdl, tasks, _ = base_model(data)
 
     tardiness = []
     for j in range(data.num_jobs):

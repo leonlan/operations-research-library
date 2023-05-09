@@ -51,7 +51,7 @@ def main(
 
     if modelType == "cp":
         if solver == "cplex":
-            model = CP_MODELS[problemType](data, model)
+            model = CP_MODELS[problemType](data)
             x, y = CPLEX_CP_solve(
                 model,
                 problemType,
