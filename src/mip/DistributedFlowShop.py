@@ -1,7 +1,7 @@
 from .constants import M, V
 
 
-def Distributedflowshopmodel(data, mdl):
+def DistributedFlowShop(data, mdl):
     jobs = range(data.num_jobs)
     stages = range(data.num_machines)
     factories = range(data.num_factories)

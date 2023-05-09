@@ -1,7 +1,7 @@
 from .constants import M, V
 
 
-def TCTflowshopmodel(data, mdl):
+def TardinessFlowShop(data, mdl):
     # Variable X
     names = [
         "X_{}_{}".format(j, j1)
@@ -18,13 +18,17 @@ def TCTflowshopmodel(data, mdl):
         for j in range(data.num_jobs)
         for i in range(data.num_machines)
     ]
-    for _j in range(data.num_jobs):
-        for _i in range(data.num_machines - 1):
-            objective += [0]
-        objective += [1]
+    objective += [0] * data.num_jobs * data.num_machines
     lower_bounds += [0] * data.num_jobs * data.num_machines
     upper_bounds += [V] * data.num_jobs * data.num_machines
     types += ["C"] * data.num_jobs * data.num_machines
+
+    # Variable T
+    names += ["T_{}".format(j) for j in range(data.num_jobs)]
+    objective += [1] * data.num_jobs
+    lower_bounds += [0] * data.num_jobs
+    upper_bounds += [V] * data.num_jobs
+    types += ["C"] * data.num_jobs
 
     ###### constraints ########
     constraints = []
@@ -72,6 +76,15 @@ def TCTflowshopmodel(data, mdl):
                 constraints.append([variables, coffiecient])
                 senses.append("G")
                 rhs.append(data.processing[j1][i])
+
+    # constraint 5
+    for j in range(data.num_jobs):
+        variables = ["T_{}".format(j)]
+        variables += ["C_{}_{}".format(j, data.num_machines - 1)]
+        coffiecient = [1, -1]
+        constraints.append([variables, coffiecient])
+        senses.append("G")
+        rhs.append(-1 * data.due_dates[j])
 
     mdl.variables.add(
         obj=objective,

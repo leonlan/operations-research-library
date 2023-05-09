@@ -1,4 +1,4 @@
-def parallelmachinemodel(data, mdl):
+def ParallelMachine(data, mdl):
     """
     tasks = [[]] * data.n
     for j in range(data.n):

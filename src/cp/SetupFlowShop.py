@@ -7,7 +7,7 @@ from .constraints.minimize_makespan import minimize_makespan
 from .constraints.no_overlap_jobs import no_overlap_jobs
 
 
-def Setupflowshopmodel(data):
+def SetupFlowShop(data):
     mdl = docp.CpoModel()
 
     tasks = add_task_interval_variables(data, mdl)

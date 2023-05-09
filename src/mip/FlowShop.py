@@ -1,7 +1,7 @@
 from .constants import M, V
 
 
-def flowshopmodel(data, mdl):
+def FlowShop(data, mdl):
     # Variable X
     names = [
         "X_{}_{}".format(j, j1)

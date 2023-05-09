@@ -1,7 +1,7 @@
 from .constants import V
 
 
-def parallelmachinemodel(data, mdl):
+def ParallelMachine(data, mdl):
     # Variable Y
     names = [
         "Y_{}_{}".format(j, i)
