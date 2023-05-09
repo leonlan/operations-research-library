@@ -1,44 +1,20 @@
+from .constraints import add_task_interval_variables
+from .constraints.add_sequence_variables import add_sequence_variables
+from .constraints.all_machines_same_sequence import all_machines_same_sequence
+from .constraints.minimize_makespan import minimize_makespan
+from .constraints.no_overlap_jobs import no_overlap_jobs
+
+
 def Setupflowshopmodel(data, mdl):
-    tasks = [[]] * data.jobs
-    for j in range(data.jobs):
-        tasks[j] = [[]] * data.machines
-    for j in range(data.jobs):
-        for i in range(data.machines):
-            tasks[j][i] = mdl.interval_var(
-                name="T_{}_{}".format(j, i), size=data.processing[j][i]
-            )  # interval variable
+    tasks = add_task_interval_variables(data, mdl)
+    no_overlap_jobs(data, mdl, tasks)
 
-    for j in range(data.jobs):
-        for i in range(1, data.machines):
-            mdl.add(
-                mdl.end_before_start(tasks[j][i - 1], tasks[j][i])
-            )  # no overlap jobs
-
-    Sequence_variable = [[]] * data.machines
-    for i in range(data.machines):
-        Sequence_variable[i] = mdl.sequence_var(
-            [tasks[j][i] for j in range(data.jobs)]
-        )
-
-    for i in range(data.machines - 1):
-        mdl.add(
-            mdl.same_sequence(Sequence_variable[i], Sequence_variable[i + 1])
-        )
+    machine_sequence = add_sequence_variables(data, mdl, tasks)
+    all_machines_same_sequence(data, machine_sequence, mdl)
 
     for i in range(data.machines):
-        mdl.add(
-            mdl.no_overlap(Sequence_variable[i], data.setup[i])
-        )  # no overlap
+        mdl.add(mdl.no_overlap(machine_sequence[i], data.setup[i]))
 
-    mdl.add(
-        mdl.minimize(
-            mdl.max(
-                [
-                    mdl.end_of(tasks[j][data.machines - 1])
-                    for j in range(data.jobs)
-                ]
-            )
-        )
-    )  # this is makespan
+    minimize_makespan(data, mdl, tasks)
 
     return mdl
