@@ -1,52 +1,14 @@
+from .base_model import base_model
+
+
 def Tardinessflowshopmodel(data, mdl):
-    tasks = [[]] * data.jobs
+    mdl, tasks, _ = base_model(data, mdl)
+
+    tardiness = []
     for j in range(data.jobs):
-        tasks[j] = [[]] * data.machines
+        late = mdl.end_of(tasks[j][data.machines - 1]) - data.due_dates[j]
+        tardiness.append(mdl.max([late, 0]))
 
-    for j in range(data.jobs):
-        for i in range(data.machines):
-            tasks[j][i] = mdl.interval_var(
-                name="T_{}_{}".format(j, i), size=data.processing[j][i]
-            )  # interval variable
-
-    # for i in range(data.g):
-    #    mdl.add(mdl.no_overlap( [tasks[j][i] for j in range(data.n)]))     #no overlap machines
-
-    for j in range(data.jobs):
-        for i in range(1, data.machines):
-            mdl.add(
-                mdl.end_before_start(tasks[j][i - 1], tasks[j][i])
-            )  # no overlap jobs
-
-    Sequence_variable = [[]] * data.machines
-    for i in range(data.machines):
-        Sequence_variable[i] = mdl.sequence_var(
-            [tasks[j][i] for j in range(data.jobs)]
-        )
-
-    for i in range(data.machines):
-        mdl.add(mdl.no_overlap(Sequence_variable[i]))  # no overlap machines
-
-    for i in range(data.machines - 1):
-        mdl.add(
-            mdl.same_sequence(Sequence_variable[i], Sequence_variable[i + 1])
-        )
-
-    mdl.add(
-        mdl.minimize(
-            mdl.sum(
-                [
-                    mdl.max(
-                        [
-                            mdl.end_of(tasks[j][data.machines - 1])
-                            - data.due_dates[j],
-                            0,
-                        ]
-                    )
-                    for j in range(data.jobs)
-                ]
-            )
-        )
-    )  # this is total tardiness
+    mdl.add(mdl.minimize(mdl.sum(tardiness)))
 
     return mdl
