@@ -9,6 +9,7 @@ from .constraints.no_overlap_machines import no_overlap_machines
 
 def base_model(data):
     mdl = docp.CpoModel()
+
     tasks = add_task_interval_variables(data, mdl)
     no_overlap_jobs(data, mdl, tasks)
 

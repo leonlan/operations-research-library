@@ -141,7 +141,7 @@ Outcome = Union[int, str]
 def CPLEX_CP_solve(
     model, problem_type, name, time_limit, num_procs, out_dir, data
 ) -> Tuple[Outcome, Outcome]:
-    msol = model.solve(
+    result = model.solve(
         TimeLimit=time_limit,
         Workers=num_procs,
         LogVerbosity="Terse",
@@ -149,11 +149,11 @@ def CPLEX_CP_solve(
         RelativeOptimalityTolerance=0.0,
     )
 
-    if msol.solution.is_empty():
+    if result.solution is None:
         return "Infeasible", "Unkown"
 
-    lb = msol.get_objective_bounds()[0]
-    ub = msol.get_objective_values()[0]
+    lb = result.get_objective_bounds()[0]
+    ub = result.get_objective_values()[0]
 
     fname = f"solution_CP_CPLEX_{problem_type}_{name}.txt"
 
@@ -170,7 +170,7 @@ def CPLEX_CP_solve(
                     if problem_type != "Parallelmachine"
                     else "A_{}_{}".format(j, i)
                 )
-                var = msol.get_var_solution(var_name)
+                var = result.get_var_solution(var_name)
                 x, y = var.get_end(), var.get_start()
                 fh.write(f"{y} {x}\t")
 

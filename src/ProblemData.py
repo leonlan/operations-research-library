@@ -30,13 +30,13 @@ class ProblemData:
         with open(fname, "r") as fh:
             data["num_jobs"] = read_line(fh)[0]
             data["num_machines"] = read_line(fh)[0]
-            data["processing"] = [
-                read_line(fh) for _ in range(data["num_jobs"])
-            ]
 
             if problem_type == "Distributedflowshop":
                 data["num_factories"] = read_line(fh)[0]
 
+            data["processing"] = [
+                read_line(fh) for _ in range(data["num_jobs"])
+            ]
             if problem_type == "Tardinessflowshop":
                 data["due_dates"] = read_line(fh)
 

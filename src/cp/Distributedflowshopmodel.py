@@ -1,62 +1,51 @@
+from itertools import product
+
+import docplex.cp.model as docp
+
 from .constraints import add_task_interval_variables
+from .constraints.minimize_makespan import minimize_makespan
 
 
-def Distributedflowshopmodel(data, mdl):
+def Distributedflowshopmodel(data):
+    mdl = docp.CpoModel()
+
     jobs = range(data.num_jobs)
     stages = range(data.num_machines)
     factories = range(data.num_factories)
 
-    tasks = [[] for _ in jobs]
-    for j in jobs:
-        tasks[j] = [[] for _ in stages]
-
-    for j in jobs:
-        for i in stages:
-            tasks[j][i] = [
-                mdl.interval_var(
-                    name=f"A_{j}_{i}_{k}",
-                    optional=True,
-                    size=data.processing[j][i],
-                )
-                for k in factories
-            ]
+    # fmt: off
+    # TODO how to make this more legible?
+    tasks = [[[mdl.interval_var(name=f"A_{j}{i}{k}",
+                                optional=True,
+                                size=data.processing[j][i])
+               for k in factories] for i in stages] for j in jobs]
+    # fmt: on
 
     _tasks = add_task_interval_variables(data, mdl)
 
-    for j in jobs:
-        for i in stages:
-            subexpr = [tasks[j][i][k] for k in factories]
-            expr = mdl.alternative(_tasks[j][i], subexpr)
-            mdl.add(expr)
+    for j, i in product(jobs, stages):
+        subexpr = [tasks[j][i][k] for k in factories]
+        mdl.add(mdl.alternative(_tasks[j][i], subexpr))
 
-    for j in jobs:
-        for i in range(1, data.num_machines):
-            for k in factories:
-                lhs = mdl.presence_of(tasks[j][i][k])
-                rhs = mdl.presence_of(tasks[j][0][k])
-                mdl.add(lhs >= rhs)
+    for j, i, k in product(jobs, range(1, data.num_machines), factories):
+        mdl.add(
+            mdl.presence_of(tasks[j][i][k]) >= mdl.presence_of(tasks[j][0][k])
+        )
 
-    seq_var = [[]] * data.num_machines
-    for i in stages:
-        seq_var[i] = [[]] * data.num_factories
-        for k in factories:
-            seq_var[i][k] = mdl.sequence_var([tasks[j][i][k] for j in jobs])
+    seq_var = [
+        [mdl.sequence_var([tasks[j][i][k] for j in jobs]) for k in factories]
+        for i in stages
+    ]
 
-    for i in stages:
-        for k in factories:
-            mdl.add(mdl.no_overlap(seq_var[i][k]))  # no overlap machines
+    for i, k in product(stages, factories):
+        mdl.add(mdl.no_overlap(seq_var[i][k]))
 
-    for i in range(data.num_machines - 1):
-        for k in factories:
-            mdl.add(mdl.same_sequence(seq_var[i][k], seq_var[i + 1][k]))
+    for i, k in product(range(data.num_machines - 1), factories):
+        mdl.add(mdl.same_sequence(seq_var[i][k], seq_var[i + 1][k]))
 
-    for j in jobs:
-        for i in range(1, data.num_machines):
-            mdl.add(mdl.end_before_start(_tasks[j][i - 1], _tasks[j][i]))
+    for j, i in product(jobs, range(1, data.num_machines)):
+        mdl.add(mdl.end_before_start(_tasks[j][i - 1], _tasks[j][i]))
 
-    makespan = mdl.max(
-        [mdl.end_of(_tasks[j][data.num_machines - 1]) for j in jobs]
-    )
-    mdl.add(mdl.minimize(makespan))
+    minimize_makespan(data, mdl, _tasks)
 
     return mdl
