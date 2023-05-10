@@ -8,3 +8,4 @@ class ProblemType(Enum):
     TARDINESS_FLOW_SHOP = "Tardinessflowshop"
     PARALLEL_MACHINE = "Parallelmachine"
     TCT_FLOW_SHOP = "TCTflowshop"
+    HYBRID_FLOW_SHOP = "Hybridflowshop"
