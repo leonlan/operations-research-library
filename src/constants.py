@@ -9,3 +9,4 @@ class ProblemType(Enum):
     PARALLEL_MACHINE = "Parallelmachine"
     TCT_FLOW_SHOP = "TCTflowshop"
     HYBRID_FLOW_SHOP = "Hybridflowshop"
+    UNRELATED_PARALLEL_MACHINES = "Unrelatedparallelmachines"

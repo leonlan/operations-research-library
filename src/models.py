@@ -165,11 +165,13 @@ def CPLEX_CP_solve(
             num_machines = data.num_machines
 
             for i in range(num_machines):
-                var_name = (
-                    "T_{}_{}".format(j, i)
-                    if problem_type != "Parallelmachine"
-                    else "A_{}_{}".format(j, i)
-                )
+                if problem_type == "Parallelmachine":
+                    var_name = "A_{}_{}".format(j, i)
+                elif problem_type == "Unrelatedparallelmachines":
+                    var_name = "T_{}".format(j)
+                else:
+                    var_name = "T_{}_{}".format(j, i)
+
                 var = result.get_var_solution(var_name)
                 x, y = var.get_end(), var.get_start()
                 fh.write(f"{y} {x}\t")

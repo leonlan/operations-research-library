@@ -53,7 +53,7 @@ class ProblemData:
                 read_line(fh) for _ in range(data["num_jobs"])
             ]
 
-            if problem_type == "Setupflowshop":
+            if problem_type in ["Setupflowshop", "Unrelatedparallelmachines"]:
                 data["setup"] = [
                     [read_line(fh) for _ in range(data["num_jobs"])]
                     for _ in range(data["num_machines"])
