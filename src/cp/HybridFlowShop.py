@@ -48,7 +48,7 @@ def HybridFlowShopExplicit(data):
     mdl = docp.CpoModel()
 
     tasks = create_tasks_matrix(data, mdl)
-    _tasks = add_task_interval_variables(data, mdl)
+    _tasks = add_task_interval_variables(data, mdl, include_processing=False)
 
     no_overlap_jobs(data, mdl, _tasks)
     add_alternative_constraints(data, mdl, tasks, _tasks)
