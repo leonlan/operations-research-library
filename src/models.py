@@ -7,6 +7,7 @@ import gurobipy as grb
 import numpy as np
 from cp import CP_MODELS
 from mip.modelCplexMIP import MIPmodel_generation
+from plotting import plot_schedule
 from ProblemData import ProblemData
 
 
@@ -176,4 +177,26 @@ def CPLEX_CP_solve(
                 x, y = var.get_end(), var.get_start()
                 fh.write(f"{y} {x}\t")
 
+    if problem_type == "Parallelmachine":
+        schedule = result2schedule(data, result)
+        plot_schedule(data, schedule)
+
     return lb, ub
+
+
+def result2schedule(data, result):
+    schedule = []
+
+    for machine in range(data.num_machines):
+        job_start = []
+
+        for job in range(data.num_jobs):
+            var = result.get_var_solution(f"O_{job}_{machine}")
+
+            if not var.is_absent():
+                job_start.append((job, var.get_start()))
+
+        sequence = [job for (job, *_) in sorted(job_start, key=lambda x: x[1])]
+        schedule.append(sequence)
+
+    return schedule
