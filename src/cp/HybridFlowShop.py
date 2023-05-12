@@ -1,4 +1,5 @@
 import docplex.cp.model as docp
+import numpy as np
 
 from .constraints.add_task_interval_variables import (
     add_task_interval_variables,
@@ -52,7 +53,7 @@ def HybridFlowShopExplicit(data):
 
     no_overlap_jobs(data, mdl, _tasks)
     add_alternative_constraints(data, mdl, tasks, _tasks)
-    enforce_no_overlap_jobs(data, mdl, tasks)
+    no_overlap_on_machines(data, mdl, tasks)
 
     minimize_makespan(data, mdl, _tasks)
 
@@ -81,17 +82,17 @@ def create_tasks_matrix(data, mdl):
 def add_alternative_constraints(data, mdl, tasks, _tasks):
     for j in range(data.num_jobs):
         for i in range(data.num_machines):
-            mdl.add(
-                mdl.alternative(
-                    _tasks[j][i],
-                    [tasks[j][i][k] for k in range(data.machines[i])],
-                )
-            )
+            assignment_vars = [tasks[j][i][k] for k in range(data.machines[i])]
+            mdl.add(mdl.alternative(_tasks[j][i], assignment_vars))
 
 
-def enforce_no_overlap_jobs(data, mdl, tasks):
+def no_overlap_on_machines(data, mdl, tasks):
     for i in range(data.num_machines):
         for k in range(data.machines[i]):
-            mdl.add(
-                mdl.no_overlap([tasks[j][i][k] for j in range(data.num_jobs)])
-            )
+            # HACK: Dummy sequence setup times, because HFS has a different
+            # problem data structure than other FS problems.
+            setup = np.ones((data.num_jobs, data.num_jobs), dtype=int)
+            seq_tasks = [tasks[j][i][k] for j in range(data.num_jobs)]
+
+            cons = mdl.no_overlap(mdl.sequence_var(seq_tasks), setup)
+            mdl.add(cons)
