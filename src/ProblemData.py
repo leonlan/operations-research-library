@@ -9,6 +9,7 @@ class ProblemData:
         num_machines: int,
         processing: List[List[int]],
         num_factories: int = 0,
+        num_stages: int = 0,
         due_dates: Optional[List[int]] = None,
         setup: Optional[List[List[int]]] = None,
         machines: Optional[List[List[int]]] = None,
@@ -21,6 +22,8 @@ class ProblemData:
         self.due_dates = due_dates or []
         self.setup = setup or []
         self.machines = machines or []  # num machines per stage
+
+        self.num_stages = num_stages
 
     @classmethod
     def from_file(cls, fname: Union[str, os.PathLike], problem_type: str):
@@ -42,6 +45,7 @@ class ProblemData:
 
             if problem_type == "Hybridflowshop":
                 data["machines"] = read_line(fh)
+                data["num_stages"] = data["num_machines"]
 
             if problem_type == "Distributedflowshop":
                 data["num_factories"] = read_line(fh)[0]
