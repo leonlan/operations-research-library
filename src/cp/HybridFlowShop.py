@@ -1,4 +1,3 @@
-import random
 from itertools import product
 
 import docplex.cp.model as docp
@@ -8,8 +7,6 @@ from .constraints.add_task_interval_variables import (
 )
 from .constraints.minimize_makespan import minimize_makespan
 from .constraints.no_overlap_jobs import no_overlap_jobs
-
-random.seed(0)
 
 
 def HybridFlowShop(data, model="explicit"):
@@ -127,7 +124,7 @@ def no_overlap_on_machines(data, mdl, tasks):
     machine. This constraint ensures that no two jobs are processed on the same
     machine at the same time.
 
-    Setup times are currently randomly generated.
+        NoOverlap(Task[j][i][k] for all j, setup[:, :, i, k])
     """
     for i in range(data.num_stages):
         for k in range(data.machines[i]):
@@ -143,6 +140,9 @@ def inter_stage_accessibility(data, mdl, tasks):
     Accessibility constraints are constraints that ensure that a job can only
     be produced on stage $i$ line $l$ if it is accesible from the line $l'$
     that it was produced on in stage $i-1$, for $i > 0$.
+
+    PresenceOf(tasks[j][i][k])
+       <= sum(PresenceOf(tasks[j][i-1][k'] for k' in range(machines[i-1])))
     """
     for job, stage in product(range(data.num_jobs), range(1, data.num_stages)):
         for k in range(data.machines[stage]):
@@ -152,5 +152,5 @@ def inter_stage_accessibility(data, mdl, tasks):
                     for k_ in range(data.machines[stage - 1])
                 ]
             )
-            cons = can_access_k >= mdl.presence_of(tasks[job][stage][k])
+            cons = mdl.presence_of(tasks[job][stage][k]) <= can_access_k
             mdl.add(cons)
