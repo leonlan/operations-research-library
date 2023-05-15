@@ -2,7 +2,6 @@ import random
 from itertools import product
 
 import docplex.cp.model as docp
-import numpy.random as rnd
 
 from .constraints.add_task_interval_variables import (
     add_task_interval_variables,
@@ -132,8 +131,7 @@ def no_overlap_on_machines(data, mdl, tasks):
     """
     for i in range(data.num_stages):
         for k in range(data.machines[i]):
-            # TODO Infer setup times from data
-            setup = rnd.randint(0, 100, (data.num_jobs, data.num_jobs))
+            setup = data.setup[:, :, i, k]
             seq_tasks = [tasks[j][i][k] for j in range(data.num_jobs)]
 
             cons = mdl.no_overlap(mdl.sequence_var(seq_tasks), setup)
