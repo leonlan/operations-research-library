@@ -1,6 +1,7 @@
 import time
+from itertools import product
 from pathlib import Path
-from typing import Tuple, Union
+from typing import NamedTuple, Tuple, Union
 
 import cplex
 import gurobipy as grb
@@ -189,6 +190,14 @@ def CPLEX_CP_solve(
     return lb, ub
 
 
+class Item(NamedTuple):
+    job: int
+    stage: int
+    machine: int
+    start: int
+    duration: int
+
+
 def result2schedule(data, result):
     schedule = []
 
@@ -226,7 +235,7 @@ def hfsresult2schedules(data, result):
                     job_start.append((job, var.get_start()))
 
             sequence = [
-                job for (job, *_) in sorted(job_start, key=lambda x: x[1])
+                job for job, _ in sorted(job_start, key=lambda x: x[1])
             ]
             schedule.append(sequence)
 
@@ -241,15 +250,14 @@ def hfsresult2plot(data, result):
     """
     schedule = []
 
-    for stage in range(data.num_stages):
+    for job, stage in product(range(data.num_jobs), range(data.num_stages)):
         for machine in range(data.machines[stage]):
-            for job in range(data.num_jobs):
-                var = result.get_var_solution(f"A_{job}_{stage}_{machine}")
-                if var.is_absent():
-                    continue
+            var = result.get_var_solution(f"A_{job}_{stage}_{machine}")
+            if var.is_absent():
+                continue
 
-                item = (job, stage, machine, var.get_start(), var.get_length())
-                schedule.append(item)
+            item = Item(job, stage, machine, var.get_start(), var.get_length())
+            schedule.append(item)
 
     plot(data, schedule)
 
@@ -258,7 +266,7 @@ def plot(data, schedule, ax=None):
     _, ax = plt.subplots(data.num_stages, 1, figsize=(10, 10))
 
     def get_completion_time(item):
-        return item[3] + item[4]
+        return item.start + item.duration
 
     # Defining custom 'xlim' and 'ylim' values.
     latest = max(schedule, key=get_completion_time)
