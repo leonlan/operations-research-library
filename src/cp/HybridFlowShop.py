@@ -101,7 +101,7 @@ def machine_eligibility(data, mdl, tasks):
     """
     for job, stage in product(range(data.num_jobs), range(data.num_stages)):
         for machine in range(data.machines[stage]):
-            if not random.randint(0, 5):  # TODO change to data
+            if not data.eligible[job][stage][machine]:
                 cons = mdl.presence_of(tasks[job][stage][machine]) == 0
                 mdl.add(cons)
 

@@ -1,6 +1,8 @@
 import os
 from typing import List, Optional, Union
 
+import numpy as np
+
 
 class ProblemData:
     def __init__(
@@ -13,6 +15,7 @@ class ProblemData:
         due_dates: Optional[List[int]] = None,
         setup: Optional[List[List[int]]] = None,
         machines: Optional[List[List[int]]] = None,
+        eligible: Optional[List[List[int]]] = None,
     ):
         self.num_jobs = num_jobs
         self.num_machines = num_machines  # also: stages/units
@@ -22,6 +25,7 @@ class ProblemData:
         self.due_dates = due_dates or []
         self.setup = setup or []
         self.machines = machines or []  # num machines per stage
+        self.eligible = eligible or []
 
         self.num_stages = num_stages
 
@@ -62,5 +66,19 @@ class ProblemData:
                     [read_line(fh) for _ in range(data["num_jobs"])]
                     for _ in range(data["num_machines"])
                 ]
+
+            # HACK to include eligible machines in data
+            if problem_type == "Unrelatedparallelmachines":
+                data["eligible"] = (
+                    np.ones_like(data["processing"]).astype(int).tolist()
+                )
+
+            if problem_type == "Hybridflowshop":
+                shape = (
+                    data["num_jobs"],
+                    data["num_stages"],
+                    data["num_machines"],
+                )
+                data["eligible"] = np.ones(shape).astype(int).tolist()
 
         return cls(**data)
