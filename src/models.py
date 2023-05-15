@@ -1,12 +1,15 @@
 import time
+from itertools import product
 from pathlib import Path
-from typing import Tuple, Union
+from typing import NamedTuple, Tuple, Union
 
 import cplex
 import gurobipy as grb
+import matplotlib.pyplot as plt
 import numpy as np
 from cp import CP_MODELS
 from mip.modelCplexMIP import MIPmodel_generation
+from plotting import plot_schedule
 from ProblemData import ProblemData
 
 
@@ -165,13 +168,120 @@ def CPLEX_CP_solve(
             num_machines = data.num_machines
 
             for i in range(num_machines):
-                var_name = (
-                    "T_{}_{}".format(j, i)
-                    if problem_type != "Parallelmachine"
-                    else "A_{}_{}".format(j, i)
-                )
+                if problem_type == "Parallelmachine":
+                    var_name = "A_{}_{}".format(j, i)
+                elif problem_type == "Unrelatedparallelmachines":
+                    var_name = "T_{}".format(j)
+                else:
+                    var_name = "T_{}_{}".format(j, i)
+
                 var = result.get_var_solution(var_name)
                 x, y = var.get_end(), var.get_start()
                 fh.write(f"{y} {x}\t")
 
+    if problem_type == "Parallelmachine":
+        schedule = result2schedule(data, result)
+        plot_schedule(data, schedule)
+
+    if problem_type == "Hybridflowshop":
+        hfsresult2plot(data, result)
+        plt.show()
+
     return lb, ub
+
+
+class Item(NamedTuple):
+    job: int
+    stage: int
+    machine: int
+    start: int
+    duration: int
+
+
+def result2schedule(data, result):
+    schedule = []
+
+    for machine in range(data.num_machines):
+        job_start = []
+
+        for job in range(data.num_jobs):
+            var = result.get_var_solution(f"O_{job}_{machine}")
+
+            if not var.is_absent():
+                job_start.append((job, var.get_start()))
+
+        sequence = [job for (job, *_) in sorted(job_start, key=lambda x: x[1])]
+        schedule.append(sequence)
+
+    return schedule
+
+
+def hfsresult2schedules(data, result):
+    """
+    Extract the schedule for each stage in the HFS.
+    """
+    schedules = []
+
+    for stage in range(data.num_stages):
+        schedule = []
+
+        for machine in range(data.machines[stage]):
+            job_start = []
+
+            for job in range(data.num_jobs):
+                var = result.get_var_solution(f"A_{job}_{stage}_{machine}")
+
+                if not var.is_absent():
+                    job_start.append((job, var.get_start()))
+
+            sequence = [
+                job for job, _ in sorted(job_start, key=lambda x: x[1])
+            ]
+            schedule.append(sequence)
+
+        schedules.append(schedule)
+
+    return schedules
+
+
+def hfsresult2plot(data, result):
+    """
+    Extract the schedule for each stage in the HFS.
+    """
+    schedule = []
+
+    for job, stage in product(range(data.num_jobs), range(data.num_stages)):
+        for machine in range(data.machines[stage]):
+            var = result.get_var_solution(f"A_{job}_{stage}_{machine}")
+            if var.is_absent():
+                continue
+
+            item = Item(job, stage, machine, var.get_start(), var.get_length())
+            schedule.append(item)
+
+    plot(data, schedule)
+
+
+def plot(data, schedule, ax=None):
+    _, ax = plt.subplots(data.num_stages, 1, figsize=(10, 10))
+
+    def get_completion_time(item):
+        return item.start + item.duration
+
+    # Defining custom 'xlim' and 'ylim' values.
+    latest = max(schedule, key=get_completion_time)
+    custom_xlim = (0, get_completion_time(latest))
+
+    # Setting the values for all axes.
+    plt.setp(ax, xlim=custom_xlim)
+
+    # Color per job
+    hsv = plt.get_cmap("hsv")
+    colors = hsv(np.linspace(0, 1.0, data.num_jobs))
+
+    for job, stage, machine, start, duration in schedule:
+        ax[stage].barh(machine, width=duration, left=start, color=colors[job])
+        ax[stage].text(start + duration / 4, machine, job, va="center")
+
+    plt.xlabel("Time")
+    plt.ylabel("Machine")
