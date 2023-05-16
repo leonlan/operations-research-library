@@ -1,15 +1,34 @@
 import time
 from itertools import product
+from pathlib import Path
 from typing import NamedTuple, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
-from cp import CP_MODELS
-from plotting import plot_schedule
-from ProblemData import ProblemData
+import typer
+
+from src.constants import ProblemType
+from src.cp import CP_MODELS
+from src.plotting import plot_schedule
+from src.ProblemData import ProblemData
 
 
 def main(
+    datas: list[str],
+    problem_type: ProblemType = typer.Option(
+        ProblemType.PARALLEL_MACHINE, case_sensitive=False
+    ),
+    time_limit: int = 3,
+    num_procs: int = 1,
+):
+    for where in datas:
+        path = Path(where)
+        num_jobs, num_stages, time, lb, ub, gap = main_(
+            path, time_limit, problem_type.value, num_procs
+        )
+
+
+def main_(
     path,
     time_limit,
     problem_type,
@@ -234,3 +253,7 @@ def dpfs_plot(data, schedule, ax=None):
 
     plt.xlabel("Time")
     plt.show()
+
+
+if __name__ == "__main__":
+    typer.run(main)
