@@ -2,6 +2,9 @@ import os
 from typing import List, Optional, Union
 
 import numpy as np
+import numpy.random as rnd
+
+rnd.seed(42)
 
 
 class ProblemData:
@@ -52,7 +55,7 @@ class ProblemData:
                 data["machines"] = read_line(fh)
                 data["num_stages"] = data["num_machines"]
 
-            if problem_type == "Distributedflowshop":
+            if "distributedflowshop" in problem_type.lower():
                 data["num_factories"] = read_line(fh)[0]
 
             if problem_type == "Tardinessflowshop":
@@ -86,5 +89,17 @@ class ProblemData:
 
                 shape_setup = (n_jobs, n_jobs, n_stages, n_machines)
                 data["setup"] = np.ones(shape_setup).astype(int)
+
+            if problem_type == "Complexdistributedflowshop":
+                # HACK Adding unrelated machines, setup and eligibility data
+                # to complex distributed flow shop.
+
+                # Repeat the processing times for each identical machine for
+                # each factory and add some noise.
+                proc = np.array(data["processing"])
+                num_factories = data["num_factories"]
+                proc = np.repeat(proc[:, :, np.newaxis], num_factories, axis=2)
+                noise = rnd.randint(1, 10, size=proc.shape)
+                data["processing"] = proc + noise
 
         return cls(**data)
