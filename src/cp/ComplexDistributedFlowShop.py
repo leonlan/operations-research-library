@@ -19,6 +19,8 @@ def ComplexDistributedFlowShop(data):
 
     schedule_all_units_if_assigned(data, mdl, tasks)
 
+    line_eligibility(data, mdl, tasks)
+
     no_overlap_machines(data, mdl, sequences)
 
     same_sequence_units(data, mdl, sequences)
@@ -90,6 +92,20 @@ def same_sequence_units(data, mdl, seq_var):
         range(data.num_machines - 1), range(data.num_factories)
     ):
         mdl.add(mdl.same_sequence(seq_var[i][k], seq_var[i + 1][k]))
+
+
+def line_eligibility(data, mdl, tasks):
+    """
+    Implements the line eligibility constraints on assignment variables.
+    """
+    for job, machine, factory in product(
+        range(data.num_jobs),
+        range(data.num_machines),
+        range(data.num_factories),
+    ):
+        if not data.eligible[job][machine][factory]:
+            cons = mdl.presence_of(tasks[job][machine][factory]) == 0
+            mdl.add(cons)
 
 
 def no_overlap_machines(data, mdl, seq_var):

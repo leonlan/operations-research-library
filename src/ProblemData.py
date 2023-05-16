@@ -108,9 +108,18 @@ class ProblemData:
                 # are of the same parity. This ensures that the schedules will
                 # always schedule odd jobs together, and even jobs together.
                 shape = (num_jobs, num_jobs, num_machines, num_factories)
-                setup = np.ones(shape, dtype=int) * 1000
+                setup = np.ones(shape, dtype=int) * 100
                 setup[::2, ::2, :, :] = 0
                 setup[1::2, 1::2, :, :] = 0
                 data["setup"] = setup
+
+                # Line eligibility: jobs are not eligible on every production
+                # line. Even numbered jobs are not allowed on the first line,
+                # odd numbered jobs are not allowed on the second line.
+                eligible_shape = (num_jobs, num_machines, num_factories)
+                eligible = np.ones(eligible_shape, dtype=bool)
+                eligible[::2, :, 0] = False
+                eligible[1::2, :, 1] = False
+                data["eligible"] = eligible
 
         return cls(**data)
