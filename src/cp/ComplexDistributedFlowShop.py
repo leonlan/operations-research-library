@@ -6,13 +6,12 @@ from .constraints import add_task_interval_variables
 from .constraints.minimize_makespan import minimize_makespan
 
 
-def DistributedFlowShop(data):
+def ComplexDistributedFlowShop(data):
     mdl = docp.CpoModel()
 
     tasks = make_tasks_variables(data, mdl)
-
-    _tasks = add_task_interval_variables(data, mdl)
-    seq_var = make_sequence_variables(data, mdl, tasks)
+    _tasks = add_task_interval_variables(data, mdl, include_processing=False)
+    sequences = make_sequence_variables(data, mdl, tasks)
 
     no_overlap_jobs(data, mdl, _tasks)
 
@@ -20,9 +19,11 @@ def DistributedFlowShop(data):
 
     schedule_all_units_if_assigned(data, mdl, tasks)
 
-    no_overlap_machines(data, mdl, seq_var)
+    line_eligibility(data, mdl, tasks)
 
-    same_sequence_units(data, mdl, seq_var)
+    no_overlap_machines(data, mdl, sequences)
+
+    same_sequence_units(data, mdl, sequences)
 
     minimize_makespan(data, mdl, _tasks)
 
@@ -41,11 +42,9 @@ def make_tasks_variables(data, mdl):
 
     for j, i in product(jobs, machines):
         for k in factories:
-            var = mdl.interval_var(
-                name=f"A_{j}_{i}_{k}",
-                optional=True,
-                size=data.processing[j][i],
-            )
+            name = f"A_{j}_{i}_{k}"
+            proc = data.processing[j][i][k]  # unrelated processing times
+            var = mdl.interval_var(name=name, optional=True, size=proc)
             tasks[j][i].append(var)
 
     return tasks
@@ -57,7 +56,10 @@ def make_sequence_variables(data, mdl, tasks):
     """
     seq_var = [
         [
-            mdl.sequence_var([tasks[j][i][k] for j in (range(data.num_jobs))])
+            mdl.sequence_var(
+                [tasks[j][i][k] for j in (range(data.num_jobs))],
+                name=f"S_{i}_{k}",
+            )
             for k in (range(data.num_factories))
         ]
         for i in (range(data.num_machines))
@@ -92,18 +94,34 @@ def same_sequence_units(data, mdl, seq_var):
         mdl.add(mdl.same_sequence(seq_var[i][k], seq_var[i + 1][k]))
 
 
+def line_eligibility(data, mdl, tasks):
+    """
+    Implements the line eligibility constraints on assignment variables.
+    """
+    for job, machine, factory in product(
+        range(data.num_jobs),
+        range(data.num_machines),
+        range(data.num_factories),
+    ):
+        if not data.eligible[job][machine][factory]:
+            cons = mdl.presence_of(tasks[job][machine][factory]) == 0
+            mdl.add(cons)
+
+
 def no_overlap_machines(data, mdl, seq_var):
     """
     Ensures that no two jobs are scheduled on the same machine at the same time.
     It implements the constraint
 
-        NoOverlap(SeqVar[i][k])
+        NoOverlap(SeqVar[i][k], setup)
 
-    for each machine $i$ and factory $k$ combination.
+    for each machine $i$ and factory $k$ combination, where `setup` is a J-by-J
+    matrix of setup times between jobs.
     """
 
     for i, k in product(range(data.num_machines), range(data.num_factories)):
-        mdl.add(mdl.no_overlap(seq_var[i][k]))
+        setup = data.setup[:, :, i, k]
+        mdl.add(mdl.no_overlap(seq_var[i][k], setup))
 
 
 def assign_one_factory(data, mdl, tasks, _tasks):
