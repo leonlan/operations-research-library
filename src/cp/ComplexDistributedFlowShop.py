@@ -54,7 +54,10 @@ def make_sequence_variables(data, mdl, tasks):
     """
     seq_var = [
         [
-            mdl.sequence_var([tasks[j][i][k] for j in (range(data.num_jobs))])
+            mdl.sequence_var(
+                [tasks[j][i][k] for j in (range(data.num_jobs))],
+                name=f"S_{i}_{k}",
+            )
             for k in (range(data.num_factories))
         ]
         for i in (range(data.num_machines))
