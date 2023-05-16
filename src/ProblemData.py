@@ -93,13 +93,24 @@ class ProblemData:
             if problem_type == "Complexdistributedflowshop":
                 # HACK Adding unrelated machines, setup and eligibility data
                 # to complex distributed flow shop.
+                num_jobs = data["num_jobs"]
+                num_machines = data["num_machines"]
+                num_factories = data["num_factories"]
 
                 # Repeat the processing times for each identical machine for
                 # each factory and add some noise.
                 proc = np.array(data["processing"])
-                num_factories = data["num_factories"]
                 proc = np.repeat(proc[:, :, np.newaxis], num_factories, axis=2)
                 noise = rnd.randint(1, 10, size=proc.shape)
                 data["processing"] = proc + noise
+
+                # Setup times: very high setup times between two jobs that
+                # are of the same parity. This ensures that the schedules will
+                # always schedule odd jobs together, and even jobs together.
+                shape = (num_jobs, num_jobs, num_machines, num_factories)
+                setup = np.ones(shape, dtype=int) * 1000
+                setup[::2, ::2, :, :] = 0
+                setup[1::2, 1::2, :, :] = 0
+                data["setup"] = setup
 
         return cls(**data)

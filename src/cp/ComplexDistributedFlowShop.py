@@ -97,13 +97,15 @@ def no_overlap_machines(data, mdl, seq_var):
     Ensures that no two jobs are scheduled on the same machine at the same time.
     It implements the constraint
 
-        NoOverlap(SeqVar[i][k])
+        NoOverlap(SeqVar[i][k], setup)
 
-    for each machine $i$ and factory $k$ combination.
+    for each machine $i$ and factory $k$ combination, where `setup` is a J-by-J
+    matrix of setup times between jobs.
     """
 
     for i, k in product(range(data.num_machines), range(data.num_factories)):
-        mdl.add(mdl.no_overlap(seq_var[i][k]))
+        setup = data.setup[:, :, i, k]
+        mdl.add(mdl.no_overlap(seq_var[i][k], setup))
 
 
 def assign_one_factory(data, mdl, tasks, _tasks):
