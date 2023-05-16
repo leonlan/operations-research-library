@@ -346,7 +346,7 @@ def dpfs_plot(data, schedule, ax=None):
         ax[stage].text(start + duration / 4, machine, job, va="center")
 
     for factory in range(data.num_factories):
-        ax[factory].set_ylabel("Machine")
+        ax[factory].set_ylabel(f"Factory {factory+1}")
 
         # Invert y-axis to have the first machine at the top.
         ax[factory].set_ylim(ax[factory].get_ylim()[::-1])
