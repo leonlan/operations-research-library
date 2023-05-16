@@ -1,3 +1,4 @@
+from src.cp.ComplexDistributedFlowShop import ComplexDistributedFlowShop
 from src.cp.DistributedFlowShop import DistributedFlowShop
 from src.cp.FlowShop import FlowShop
 from src.cp.HybridFlowShop import HybridFlowShop
@@ -16,4 +17,5 @@ CP_MODELS = {
     "Parallelmachine": ParallelMachine,
     "Hybridflowshop": HybridFlowShop,
     "Unrelatedparallelmachines": UnrelatedParallelMachines,
+    "Complexdistributedflowshop": ComplexDistributedFlowShop,
 }

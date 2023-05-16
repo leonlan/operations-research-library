@@ -2,6 +2,9 @@ import os
 from typing import List, Optional, Union
 
 import numpy as np
+import numpy.random as rnd
+
+rnd.seed(42)
 
 
 class ProblemData:
@@ -52,7 +55,7 @@ class ProblemData:
                 data["machines"] = read_line(fh)
                 data["num_stages"] = data["num_machines"]
 
-            if problem_type == "Distributedflowshop":
+            if "distributedflowshop" in problem_type.lower():
                 data["num_factories"] = read_line(fh)[0]
 
             if problem_type == "Tardinessflowshop":
@@ -86,5 +89,37 @@ class ProblemData:
 
                 shape_setup = (n_jobs, n_jobs, n_stages, n_machines)
                 data["setup"] = np.ones(shape_setup).astype(int)
+
+            if problem_type == "Complexdistributedflowshop":
+                # HACK Adding unrelated machines, setup and eligibility data
+                # to complex distributed flow shop.
+                num_jobs = data["num_jobs"]
+                num_machines = data["num_machines"]
+                num_factories = data["num_factories"]
+
+                # Repeat the processing times for each identical machine for
+                # each factory and add some noise.
+                proc = np.array(data["processing"])
+                proc = np.repeat(proc[:, :, np.newaxis], num_factories, axis=2)
+                noise = rnd.randint(1, 10, size=proc.shape)
+                data["processing"] = proc + noise
+
+                # Setup times: very high setup times between two jobs that
+                # are of the same parity. This ensures that the schedules will
+                # always schedule odd jobs together, and even jobs together.
+                shape = (num_jobs, num_jobs, num_machines, num_factories)
+                setup = np.ones(shape, dtype=int) * 100
+                setup[::2, ::2, :, :] = 0
+                setup[1::2, 1::2, :, :] = 0
+                data["setup"] = setup
+
+                # Line eligibility: jobs are not eligible on every production
+                # line. Even numbered jobs are not allowed on the first line,
+                # odd numbered jobs are not allowed on the second line.
+                eligible_shape = (num_jobs, num_machines, num_factories)
+                eligible = np.ones(eligible_shape, dtype=bool)
+                eligible[::2, :, 0] = False
+                eligible[1::2, :, 1] = False
+                data["eligible"] = eligible
 
         return cls(**data)

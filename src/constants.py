@@ -10,3 +10,4 @@ class ProblemType(Enum):
     TCT_FLOW_SHOP = "TCTflowshop"
     HYBRID_FLOW_SHOP = "Hybridflowshop"
     UNRELATED_PARALLEL_MACHINES = "Unrelatedparallelmachines"
+    COMPLEX_DISTRIBUTED_FLOW_SHOP = "Complexdistributedflowshop"
