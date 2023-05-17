@@ -9,7 +9,6 @@ def UnrelatedParallelMachines(data):
     and machine eligibility constraints.
     """
     mdl = docp.CpoModel()
-    breakpoint()
 
     # Variables
     tasks = [mdl.interval_var(name=f"T_{j}") for j in range(data.num_jobs)]
