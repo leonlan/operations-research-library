@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def hfsresult2plot(data, result):
+def hfsresult2plot(data, result, fname):
     """
     Extract the schedule for each stage in the HFS.
     """
@@ -20,7 +20,7 @@ def hfsresult2plot(data, result):
             item = Item(job, stage, machine, var.get_start(), var.get_length())
             schedule.append(item)
 
-    hfs_plot(data, schedule)
+    hfs_plot(data, schedule, fname)
 
 
 def hfsresult2schedules(data, result):
@@ -51,7 +51,7 @@ def hfsresult2schedules(data, result):
     return schedules
 
 
-def hfs_plot(data, schedule, ax=None):
+def hfs_plot(data, schedule, fname=None, ax=None):
     _, ax = plt.subplots(data.num_stages, 1, figsize=(10, 10))
 
     def get_completion_time(item):
@@ -75,7 +75,10 @@ def hfs_plot(data, schedule, ax=None):
     plt.xlabel("Time")
     plt.ylabel("Machine")
 
-    plt.show()
+    if fname is not None:
+        plt.savefig(fname, bbox_inches="tight")
+    else:
+        plt.show()
 
 
 class Item(NamedTuple):

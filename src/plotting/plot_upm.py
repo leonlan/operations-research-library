@@ -3,9 +3,9 @@ from typing import List
 import matplotlib.pyplot as plt
 
 
-def upmresult2plot(data, result):
+def upmresult2plot(data, result, fname):
     schedule = result2schedule(data, result)
-    plot_schedule(data, schedule)
+    plot_schedule(data, schedule, fname)
 
 
 def result2schedule(data, result):
@@ -26,7 +26,7 @@ def result2schedule(data, result):
     return schedule
 
 
-def plot_schedule(data, schedule: List[List[int]], ax=None):
+def plot_schedule(data, schedule: List[List[int]], fname=None, ax=None):
     """
     Plots a schedule.
     """
@@ -59,4 +59,7 @@ def plot_schedule(data, schedule: List[List[int]], ax=None):
     plt.xlabel("Time")
     plt.ylabel("Machine")
 
-    plt.show()
+    if fname is not None:
+        plt.savefig(fname, bbox_inches="tight")
+    else:
+        plt.show()

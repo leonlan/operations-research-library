@@ -31,10 +31,10 @@ def main():
     parser.add_argument("--num_procs", type=int, default=2)
 
     msg = "Number of processes to use by the constraint programming solver."
-    parser.add_argument("--num_procs_solvers", type=int, default=1, help=msg)
+    parser.add_argument("--num_procs_solver", type=int, default=1, help=msg)
 
     msg = "Plot the solution?"
-    parser.add_argument("--plot", type=bool, help=msg)
+    parser.add_argument("--plot_dir", type=str, help=msg)
 
     benchmark(**vars(parser.parse_args()))
 
@@ -69,8 +69,9 @@ def solve(
     lb = result.get_objective_bounds()[0]
     ub = result.get_objective_values()[0]
 
-    if kwargs.get("plot", False):
-        plot(data, result, problem_type)
+    if plot_dir := kwargs.get("plot_dir", ""):
+        fname = Path(plot_dir) / f"{name}.pdf"
+        plot(data, result, problem_type, fname)
 
     elapsed_time = round(time.perf_counter() - time_start, 3)
 
@@ -87,6 +88,8 @@ def benchmark(instances: List[str], **kwargs):
     instances
         Paths to the instances to solve.
     """
+
+    maybe_mkdir(kwargs.get("plot_dir", ""))
 
     if len(instances) == 1:
         res = solve(instances[0], **kwargs)
@@ -117,15 +120,22 @@ def benchmark(instances: List[str], **kwargs):
     print(f"   Avg. run-time (s): {data['time'].mean():.2f}")
 
 
-def plot(data, result, problem_type):
+def plot(data, result, problem_type, fname):
+    print(fname)
     if problem_type == "Unrelatedparallelmachines":
-        src.plotting.upmresult2plot(data, result)
+        src.plotting.upmresult2plot(data, result, fname)
 
     if problem_type == "Hybridflowshop":
-        src.plotting.hfsresult2plot(data, result)
+        src.plotting.hfsresult2plot(data, result, fname)
 
     if problem_type == "Complexdistributedflowshop":
-        src.plotting.dpfsresult2plot(data, result)
+        src.plotting.dpfsresult2plot(data, result, fname)
+
+
+def maybe_mkdir(where: str):
+    if where:
+        directory = Path(where)
+        directory.mkdir(parents=True, exist_ok=True)
 
 
 def tabulate(headers, rows) -> str:

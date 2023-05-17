@@ -13,7 +13,7 @@ class DFSItem(NamedTuple):
     duration: int
 
 
-def dpfsresult2plot(data, result):
+def dpfsresult2plot(data, result, fname):
     """
     Extracts the schedule for the DPFS and plots it.
     """
@@ -35,10 +35,10 @@ def dpfsresult2plot(data, result):
             )
             schedule.append(item)
 
-    dpfs_plot(data, schedule)
+    dpfs_plot(data, schedule, fname)
 
 
-def dpfs_plot(data, schedule, ax=None):
+def dpfs_plot(data, schedule, fname=None, ax=None):
     _, ax = plt.subplots(data.num_factories, 1, figsize=(10, 10))
 
     def get_completion_time(item):
@@ -66,4 +66,8 @@ def dpfs_plot(data, schedule, ax=None):
         ax[factory].set_ylim(ax[factory].get_ylim()[::-1])
 
     plt.xlabel("Time")
-    plt.show()
+
+    if fname is not None:
+        plt.savefig(fname, bbox_inches="tight")
+    else:
+        plt.show()
