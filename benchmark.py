@@ -1,8 +1,9 @@
 import argparse
+import os
 import time
 from functools import partial
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 import numpy as np
 from tqdm.contrib.concurrent import process_map
@@ -16,64 +17,51 @@ from src.ProblemData import ProblemData
 
 def main():
     parser = argparse.ArgumentParser(description="Description of your program")
-    parser.add_argument(
-        "instances",
-        metavar="instance",
-        type=str,
-        nargs="+",
-        help="A list of data to process",
-    )
-    parser.add_argument(
-        "--problem_type",
-        type=ProblemType,
-        default=ProblemType.PARALLEL_MACHINE,
-        help="Type of the problem to solve (default: PARALLEL_MACHINE)",
-    )
-    parser.add_argument(
-        "--time_limit",
-        type=int,
-        default=3,
-        help="Time limit for benchmarking (default: 3)",
-    )
-    parser.add_argument(
-        "--num_procs",
-        type=int,
-        default=2,
-        help="Number of processes to run at a time (default: 1)",
-    )
-    parser.add_argument(
-        "--num_procs_cp",
-        type=int,
-        default=1,
-        help="Number of processes for copying (default: 1)",
-    )
-    parser.add_argument("--plot", type=bool)
+
+    msg = "Path to the instances to solve."
+    parser.add_argument("instances", type=str, nargs="+", help=msg)
+
+    msg = "Scheduling problem type."
+    parser.add_argument("--problem_type", type=ProblemType, help=msg)
+
+    msg = "Time limit for the constriant programming solver in seconds."
+    parser.add_argument("--time_limit", type=int, help=msg)
+
+    msg = "Number of instances to solve in parallel."
+    parser.add_argument("--num_procs", type=int, default=2)
+
+    msg = "Number of processes to use by the constraint programming solver."
+    parser.add_argument("--num_procs_solvers", type=int, default=1, help=msg)
+
+    msg = "Plot the solution?"
+    parser.add_argument("--plot", type=bool, help=msg)
 
     benchmark(**vars(parser.parse_args()))
 
 
 def solve(
-    path,
+    path: Union[str, os.PathLike],
     problem_type,
-    time_limit,
-    num_procs,
-    num_procs_cp,
+    time_limit: int,
+    num_procs_solver: int,
     **kwargs,
 ):
+    def cp_solver(model):
+        return model.solve(
+            TimeLimit=time_limit,
+            Workers=num_procs_solver,
+            LogVerbosity="Terse",
+        )
+
     problem_type = problem_type.value
     data = ProblemData.from_file(path, problem_type)
     path = Path(path)
     name = path.stem
 
-    kwargs = {
-        "time_limit": time_limit,
-        "num_procs": num_procs_cp,
-    }
-
     time_start = time.perf_counter()
 
-    model = CP_MODELS[problem_type](data)
-    result = cp_solver(model, **kwargs)
+    model = CP_MODELS[problem_type](data)  # type: ignore
+    result = cp_solver(model)
 
     if result.solution is None:
         return "Infeasible", "Unkown"
@@ -127,16 +115,6 @@ def benchmark(instances: List[str], **kwargs):
     print("\n", tabulate(headers, data), "\n", sep="")
     print(f"      Avg. objective: {data['ub'].mean():.0f}")
     print(f"   Avg. run-time (s): {data['time'].mean():.2f}")
-
-
-def cp_solver(model, time_limit, num_procs):
-    return model.solve(
-        TimeLimit=time_limit,
-        Workers=num_procs,
-        LogVerbosity="Terse",
-        OptimalityTolerance=0.99,
-        RelativeOptimalityTolerance=0.0,
-    )
 
 
 def plot(data, result, problem_type):
