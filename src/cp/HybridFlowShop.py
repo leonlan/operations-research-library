@@ -2,11 +2,9 @@ from itertools import product
 
 import docplex.cp.model as docp
 
-from .constraints.add_task_interval_variables import (
+from .constraints import (
     create_task_interval_variables,
-)
-from .constraints.minimize_makespan import minimize_makespan
-from .constraints.no_overlap_between_machines import (
+    minimize_makespan,
     no_overlap_between_machines,
 )
 

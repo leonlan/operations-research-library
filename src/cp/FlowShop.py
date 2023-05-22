@@ -1,17 +1,13 @@
 import docplex.cp.model as docp
 
-from .constraints import create_task_interval_variables
-from .constraints.create_sequence_variables import create_sequence_variables
-from .constraints.minimize_makespan import minimize_makespan
-from .constraints.minimize_total_completion_times import (
+from .constraints import (
+    create_sequence_variables,
+    create_task_interval_variables,
+    minimize_makespan,
     minimize_total_completion_times,
-)
-from .constraints.minimize_total_tardiness import minimize_total_tardiness
-from .constraints.no_overlap_between_machines import (
+    minimize_total_tardiness,
     no_overlap_between_machines,
-)
-from .constraints.no_overlap_on_machines import no_overlap_on_machines
-from .constraints.same_sequence_on_each_machine import (
+    no_overlap_on_machines,
     same_sequence_on_each_machine,
 )
 
