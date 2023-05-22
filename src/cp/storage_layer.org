@@ -5,7 +5,7 @@ Additionally, jobs of the same product type may be overlapping in the storage la
 
 * Definitions
 - A list of jobs $J$.
-- A list of products $P$. Each job belongs to production order.
+- A list of products $P$. Each job belongs to a unique product.
 - A list of machines $M$. Each machine is a storage unit. For now, they are all the same, but we can make them unrelated easily (see the unrelated parallel machines code).
 
 Let's define the model.
@@ -14,22 +14,34 @@ mdl = docp.CpoModel()
 #+end_src
 
 * Variables
-** Job interval variables
+** Job variables
 For each job, we define an interval variable. This interval variable has no pre-determined size.
 
 #+begin_src python
 tasks = [mdl.interval_var(name=f"T_{j}") for j in range(data.num_jobs)]
 #+end_src
-** Assignment variables
-For each job and machine pair, we introduce another interval variable that represents the assignment variable.
-This is a common way in machine scheduling to deal with assigning jobs explicitly to machines.
-Using the alternative constraint later on, we select precisely one assignment variable for each job interval variable.
 
+** Product variables
+For each job, we also define an interval variable.
 #+begin_src python
-assignments = [[mdl.interval_var(name=f"A_{j}_{i}", optional=True) for i in range(data.num_machines)] for j in range(data.num_jobs)]
+products = [mdl.interval_var(name=f"P_{j}") for p in range(data.num_products)]
+#+end_src
+
+In the following, we will assign products to machines, rather than jobs. So we define an assignment variable:
+#+begin_src python
+assignments = [[mdl.interval_var(name=f"A_{p}_{i}", optional=True) for i in range(data.num_machines)] for p in range(data.num_products)]
 #+end_src
 
 * Constraints
+** Deadlines
+Jobs cannot be finished before the corresponding deadline.
+#+begin_src python
+def jobs_finish_after_deadline(data, mdl, tasks):
+    for j in range(data.num_jobs):
+        cons = tasks[j].end >= data.deadline[j]
+        mdl.add(cons)
+#+end_src
+
 ** Select assignment variable
 Pretty standard: we select exactly one assignment interval variable for each job interval variable.
 #+begin_src python
