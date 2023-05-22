@@ -17,7 +17,7 @@ def ComplexDistributedFlowShop(data: ProblemData) -> docp.CpoModel:
 
     assign_one_line(data, model, assign, tasks)
     assign_only_eligible_lines(data, model, assign)
-    schedule_all_units_of_single_line(data, model, assign)
+    assign_to_all_units_of_single_line(data, model, assign)
 
     no_overlap_between_units(data, model, tasks)
     no_overlap_on_unit(data, model, sequences)
@@ -33,6 +33,7 @@ def create_tasks_variables(data, model):
     Creates task interval variables for each job and machine combination.
     """
     tasks = {}
+
     for j, u in product(data.jobs, data.units):
         tasks[(j, u)] = model.interval_var(name=f"T_{j}_{u}")
 
@@ -41,13 +42,15 @@ def create_tasks_variables(data, model):
 
 def create_assignment_variables(data, model):
     """
-    Creates an interval variable for each job, machine and line combination.
+    Creates an assignment interval variable for each job, machine and line
+    combination.
     """
     assign = {}
+
     for j, u, l in product(data.jobs, data.units, data.lines):
         name = f"A_{j}_{u}_{l}"
-        proc = data.processing[j][u][l]
-        var = model.interval_var(name=name, optional=True, size=proc)
+        size = data.processing[j][u][l]
+        var = model.interval_var(name=name, optional=True, size=size)
         assign[(j, u, l)] = var
 
     return assign
@@ -75,7 +78,7 @@ def no_overlap_between_units(data, model, tasks):
 
         NoOverlap(Tasks[j][i-1], Tasks[j][i])
     """
-    for j, u in product(data.jobs, range(1, data.num_machines)):
+    for j, u in product(data.jobs, range(1, data.num_units)):
         cons = model.end_before_start(tasks[(j, u - 1)], tasks[(j, u)])
         model.add(cons)
 
@@ -89,8 +92,8 @@ def same_sequence_each_unit(data, model, sequences):
 
     for each machine $i$ and line $k$ combination.
     """
-    for u, k in product(range(data.num_machines - 1), data.lines):
-        cons = model.same_sequence(sequences[(u, k)], sequences[(u + 1, k)])
+    for u, l in product(range(data.num_units - 1), data.lines):
+        cons = model.same_sequence(sequences[(u, l)], sequences[(u + 1, l)])
         model.add(cons)
 
 
@@ -106,8 +109,8 @@ def assign_only_eligible_lines(data, model, assign):
 
 def no_overlap_on_unit(data, model, seq_var):
     """
-    Ensures that no two jobs are scheduled on the same machine at the same time.
-    It implements the constraint
+    Ensures that no two jobs are scheduled on the same machine at the same
+    time. It implements the constraint
 
         NoOverlap(SeqVar[i][k], setup)
 
@@ -134,7 +137,7 @@ def assign_one_line(data, model, assign, tasks):
         model.add(model.alternative(tasks[(j, u)], assign_vars))
 
 
-def schedule_all_units_of_single_line(data, model, assign):
+def assign_to_all_units_of_single_line(data, model, assign):
     """
     Ensures that if a job is assigned to a line, then all its units are
     scheduled. It implements the constraint
@@ -143,14 +146,14 @@ def schedule_all_units_of_single_line(data, model, assign):
 
     for each job $j$, machine $i$ and line $k$ combination.
     """
-    for j, u, l in product(data.jobs, range(1, data.num_machines), data.lines):
+    for j, u, l in product(data.jobs, range(1, data.num_units), data.lines):
         other = model.presence_of(assign[(j, u, l)])
         first = model.presence_of(assign[(j, 0, l)])
         model.add(other >= first)
 
 
 def minimize_makespan(data, model, tasks):
-    last = data.num_machines
+    last = data.num_units
     completion_times = [model.end_of(tasks[(j, last - 1)]) for j in data.jobs]
     makespan = model.max(completion_times)
     model.add(model.minimize(makespan))
