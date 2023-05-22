@@ -1,19 +1,21 @@
-from src.cp.ComplexDistributedFlowShop import ComplexDistributedFlowShop
-from src.cp.DistributedFlowShop import DistributedFlowShop
-from src.cp.FlowShop import FlowShop
-from src.cp.HybridFlowShop import HybridFlowShop
-from src.cp.ParallelMachine import ParallelMachine
-from src.cp.SetupFlowShop import SetupFlowShop
-from src.cp.TardinessFlowShop import TardinessFlowShop
-from src.cp.TCTFlowShop import TCTFlowShop
-from src.cp.UnrelatedParallelMachines import UnrelatedParallelMachines
+from .ComplexDistributedFlowShop import ComplexDistributedFlowShop
+from .DistributedFlowShop import DistributedFlowShop
+from .FlowShop import FlowShop
+from .HybridFlowShop import HybridFlowShop
+from .ParallelMachine import ParallelMachine
+from .SetupFlowShop import SetupFlowShop
+from .UnrelatedParallelMachines import UnrelatedParallelMachines
 
 CP_MODELS = {
-    "Flowshop": FlowShop,
     "Distributedflowshop": DistributedFlowShop,
     "Setupflowshop": SetupFlowShop,
-    "Tardinessflowshop": TardinessFlowShop,
-    "TCTflowshop": TCTFlowShop,
+    "Flowshop": FlowShop,
+    "Tardinessflowshop": lambda data: FlowShop(
+        data, objective="total_tardiness"
+    ),
+    "TCTflowshop": lambda data: FlowShop(
+        data, objective="total_completion_times"
+    ),
     "Parallelmachine": ParallelMachine,
     "Hybridflowshop": HybridFlowShop,
     "Unrelatedparallelmachines": UnrelatedParallelMachines,
