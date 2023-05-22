@@ -1,14 +1,14 @@
 import docplex.cp.model as docp
 
 from .constraints import create_task_interval_variables
-from .constraints.add_sequence_variables import create_sequence_variables
-from .constraints.all_machines_same_sequence import (
-    same_sequence_on_each_machine,
-)
+from .constraints.create_sequence_variables import create_sequence_variables
 from .constraints.no_overlap_between_machines import (
     no_overlap_between_machines,
 )
 from .constraints.no_overlap_on_machines import no_overlap_on_machines
+from .constraints.same_sequence_on_each_machine import (
+    same_sequence_on_each_machine,
+)
 
 
 def base_model(data):
