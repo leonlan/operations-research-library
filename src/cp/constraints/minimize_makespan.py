@@ -1,8 +1,5 @@
-def minimize_makespan(data, mdl, tasks):
-    makespan = mdl.max(
-        [
-            mdl.end_of(tasks[j][data.num_machines - 1])
-            for j in range(data.num_jobs)
-        ]
+def minimize_makespan(data, model, tasks):
+    makespan = model.max(
+        [model.end_of(tasks[j][data.num_machines - 1]) for j in data.jobs]
     )
-    mdl.add(mdl.minimize(makespan))
+    model.add(model.minimize(makespan))

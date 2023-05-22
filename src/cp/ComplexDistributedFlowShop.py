@@ -2,156 +2,158 @@ from itertools import product
 
 import docplex.cp.model as docp
 
-from .constraints import add_task_interval_variables
-from .constraints.minimize_makespan import minimize_makespan
+from src.ProblemData import ProblemData
 
 
-def ComplexDistributedFlowShop(data):
-    mdl = docp.CpoModel()
-
-    tasks = make_tasks_variables(data, mdl)
-    _tasks = add_task_interval_variables(data, mdl, include_processing=False)
-    sequences = make_sequence_variables(data, mdl, tasks)
-
-    no_overlap_jobs(data, mdl, _tasks)
-
-    assign_one_factory(data, mdl, tasks, _tasks)
-
-    schedule_all_units_if_assigned(data, mdl, tasks)
-
-    line_eligibility(data, mdl, tasks)
-
-    no_overlap_machines(data, mdl, sequences)
-
-    same_sequence_units(data, mdl, sequences)
-
-    minimize_makespan(data, mdl, _tasks)
-
-    return mdl
-
-
-def make_tasks_variables(data, mdl):
+def ComplexDistributedFlowShop(data: ProblemData) -> docp.CpoModel:
     """
-    Creates an interval variable for each job, machine and factory combination.
+    Creates a CP model for the complex distributed flow shop problem.
     """
-    jobs = range(data.num_jobs)
-    machines = range(data.num_machines)
-    factories = range(data.num_factories)
+    model = docp.CpoModel()
 
-    tasks = [[[] for _ in machines] for _ in jobs]
+    tasks = create_tasks_variables(data, model)
+    assign = create_assignment_variables(data, model)
+    sequences = create_sequence_variables(data, model, assign)
 
-    for j, i in product(jobs, machines):
-        for k in factories:
-            name = f"A_{j}_{i}_{k}"
-            proc = data.processing[j][i][k]  # unrelated processing times
-            var = mdl.interval_var(name=name, optional=True, size=proc)
-            tasks[j][i].append(var)
+    assign_one_line(data, model, assign, tasks)
+    assign_only_eligible_lines(data, model, assign)
+    assign_to_all_units_of_single_line(data, model, assign)
+
+    no_overlap_between_units(data, model, tasks)
+    no_overlap_on_unit(data, model, sequences)
+    same_sequence_on_each_unit(data, model, sequences)
+
+    minimize_makespan(data, model, tasks)
+
+    return model
+
+
+def create_tasks_variables(data, model):
+    """
+    Creates task interval variables for each job and machine combination.
+    """
+    tasks = {}
+
+    for j, u in product(data.jobs, data.units):
+        tasks[(j, u)] = model.interval_var(name=f"T_{j}_{u}")
 
     return tasks
 
 
-def make_sequence_variables(data, mdl, tasks):
+def create_assignment_variables(data, model):
     """
-    Creates a sequence variable for each machine and factory combination.
+    Creates an assignment interval variable for each job, machine and line
+    combination.
     """
-    seq_var = [
-        [
-            mdl.sequence_var(
-                [tasks[j][i][k] for j in (range(data.num_jobs))],
-                name=f"S_{i}_{k}",
-            )
-            for k in (range(data.num_factories))
-        ]
-        for i in (range(data.num_machines))
-    ]
-    return seq_var
+    assign = {}
+
+    for j, u, l in product(data.jobs, data.units, data.lines):
+        name = f"A_{j}_{u}_{l}"
+        size = data.processing[j][u][l]
+        var = model.interval_var(name=name, optional=True, size=size)
+        assign[(j, u, l)] = var
+
+    return assign
 
 
-def no_overlap_jobs(data, mdl, _tasks):
+def create_sequence_variables(data, model, assign):
+    """
+    Creates a sequence variable for each machine and line combination.
+    """
+    sequences = {}
+
+    for u, l in product(data.units, data.lines):
+        name = f"S_{u}_{l}"
+        subexpr = [assign[(j, u, l)] for j in data.jobs]
+        sequences[(u, l)] = model.sequence_var(subexpr, name=name)
+
+    return sequences
+
+
+def no_overlap_between_units(data, model, tasks):
     """
     Adds a no overlap constraint for each job and machine combination, which
     ensures that a job can start on machine $i$ only when it's completed on
     machine $i-1$.
 
-        NoOverlap(Task[j][i-1], Task[j][i])
+        NoOverlap(Tasks[j][i-1], Tasks[j][i])
     """
-    for j, i in product(range(data.num_jobs), range(1, data.num_machines)):
-        mdl.add(mdl.end_before_start(_tasks[j][i - 1], _tasks[j][i]))
+    for j, u in product(data.jobs, range(1, data.num_units)):
+        cons = model.end_before_start(tasks[(j, u - 1)], tasks[(j, u)])
+        model.add(cons)
 
 
-def same_sequence_units(data, mdl, seq_var):
+def same_sequence_on_each_unit(data, model, sequences):
     """
     Ensures that the sequence of jobs on each machine is the same for each
-    factory. It implements the constraint
+    line. It implements the constraint
 
         SameSequence(SeqVar[i][k], SeqVar[i+1][k])
 
-    for each machine $i$ and factory $k$ combination.
+    for each machine $i$ and line $k$ combination.
     """
-    for i, k in product(
-        range(data.num_machines - 1), range(data.num_factories)
-    ):
-        mdl.add(mdl.same_sequence(seq_var[i][k], seq_var[i + 1][k]))
+    for u, l in product(range(data.num_units - 1), data.lines):
+        cons = model.same_sequence(sequences[(u, l)], sequences[(u + 1, l)])
+        model.add(cons)
 
 
-def line_eligibility(data, mdl, tasks):
+def assign_only_eligible_lines(data, model, assign):
     """
     Implements the line eligibility constraints on assignment variables.
     """
-    for job, machine, factory in product(
-        range(data.num_jobs),
-        range(data.num_machines),
-        range(data.num_factories),
-    ):
-        if not data.eligible[job][machine][factory]:
-            cons = mdl.presence_of(tasks[job][machine][factory]) == 0
-            mdl.add(cons)
+    for job, unit, line in product(data.jobs, data.units, data.lines):
+        if not data.eligible[job][unit][line]:
+            cons = model.presence_of(assign[(job, unit, line)]) == 0
+            model.add(cons)
 
 
-def no_overlap_machines(data, mdl, seq_var):
+def no_overlap_on_unit(data, model, seq_var):
     """
-    Ensures that no two jobs are scheduled on the same machine at the same time.
-    It implements the constraint
+    Ensures that no two jobs are scheduled on the same machine at the same
+    time. It implements the constraint
 
         NoOverlap(SeqVar[i][k], setup)
 
-    for each machine $i$ and factory $k$ combination, where `setup` is a J-by-J
+    for each machine $i$ and line $k$ combination, where `setup` is a J-by-J
     matrix of setup times between jobs.
     """
 
-    for i, k in product(range(data.num_machines), range(data.num_factories)):
-        setup = data.setup[:, :, i, k]
-        mdl.add(mdl.no_overlap(seq_var[i][k], setup))
+    for u, l in product(data.units, data.lines):
+        setup = data.setup[:, :, u, l]
+        model.add(model.no_overlap(seq_var[(u, l)], setup))
 
 
-def assign_one_factory(data, mdl, tasks, _tasks):
+def assign_one_line(data, model, assign, tasks):
     """
-    Ensures that each job is assigned to exactly one factory. It implements the
+    Ensures that each job is assigned to exactly one line. It implements the
     constraint
 
-        Alternative(Task[j][i], [Task[j][i][k] for k in range(num_factories)])
+        Alternative(Tasks[j][i], [Tasks[j][i][k] for k in range(num_lines)])
 
     for each job $j$ and machine $i$ combination.
     """
-    for j, i in product(range(data.num_jobs), range(data.num_machines)):
-        subexpr = [tasks[j][i][k] for k in (range(data.num_factories))]
-        mdl.add(mdl.alternative(_tasks[j][i], subexpr))
+    for j, u in product(data.jobs, data.units):
+        assign_vars = [assign[(j, u, k)] for k in data.lines]
+        model.add(model.alternative(tasks[(j, u)], assign_vars))
 
 
-def schedule_all_units_if_assigned(data, mdl, tasks):
+def assign_to_all_units_of_single_line(data, model, assign):
     """
-    Ensures that if a job is assigned to a factory, then all its units are
+    Ensures that if a job is assigned to a line, then all its units are
     scheduled. It implements the constraint
 
-        PresenceOf(Task[j][i][k]) >= PresenceOf(Task[j][0][k])
+        PresenceOf(Tasks[j][i][k]) >= PresenceOf(Tasks[j][0][k])
 
-    for each job $j$, machine $i$ and factory $k$ combination.
+    for each job $j$, machine $i$ and line $k$ combination.
     """
-    for j, i, k in product(
-        range(data.num_jobs),
-        range(1, data.num_machines),
-        range(data.num_factories),
-    ):
-        mdl.add(
-            mdl.presence_of(tasks[j][i][k]) >= mdl.presence_of(tasks[j][0][k])
-        )
+    for j, u, l in product(data.jobs, range(1, data.num_units), data.lines):
+        other = model.presence_of(assign[(j, u, l)])
+        first = model.presence_of(assign[(j, 0, l)])
+        model.add(other >= first)
+
+
+def minimize_makespan(data, model, tasks):
+    last = data.num_units
+    completion_times = [model.end_of(tasks[(j, last - 1)]) for j in data.jobs]
+    makespan = model.max(completion_times)
+    model.add(model.minimize(makespan))

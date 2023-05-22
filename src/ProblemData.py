@@ -27,11 +27,23 @@ class ProblemData:
         self.num_factories = num_factories
         self.due_dates = due_dates if due_dates is not None else []
         self.setup = setup if setup is not None else []
+
         # num machines per stage
-        self.machines = machines if machines is not None else []
+        self.machines = (
+            machines if machines is not None else range(num_machines)
+        )
         self.eligible = eligible if eligible is not None else []
 
         self.num_stages = num_stages
+
+        # Additional useful problem data
+        self.num_lines = self.num_factories
+        self.num_units = self.num_machines
+
+        self.jobs = list(range(self.num_jobs))
+        self.stages = list(range(self.num_stages))
+        self.lines = list(range(self.num_lines))
+        self.units = list(range(self.num_machines))
 
     @classmethod
     def from_file(cls, fname: Union[str, os.PathLike], problem_type: str):

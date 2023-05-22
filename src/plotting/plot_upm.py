@@ -11,10 +11,10 @@ def upmresult2plot(data, result, fname):
 def result2schedule(data, result):
     schedule = []
 
-    for machine in range(data.num_machines):
+    for machine in data.machines:
         job_start = []
 
-        for job in range(data.num_jobs):
+        for job in data.jobs:
             var = result.get_var_solution(f"A_{job}_{machine}")
 
             if not var.is_absent():
@@ -54,7 +54,7 @@ def plot_schedule(data, schedule: List[List[int]], fname=None, ax=None):
         bar = ax.barh(machine, width=duration, left=start, label=job)
         ax.bar_label(bar, label_type="center")
 
-    plt.yticks(range(data.num_machines), range(1, data.num_machines + 1))
+    plt.yticks(data.machines, range(1, data.num_machines + 1))
     plt.xticks()
     plt.xlabel("Time")
     plt.ylabel("Machine")
