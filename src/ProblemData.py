@@ -33,6 +33,13 @@ class ProblemData:
 
         self.num_stages = num_stages
 
+        # Additional useful problem data
+        self.num_lines = self.num_factories
+        self.jobs = list(range(self.num_jobs))
+        self.stages = list(range(self.num_stages))
+        self.lines = list(range(self.num_lines))
+        self.units = list(range(self.num_machines))
+
     @classmethod
     def from_file(cls, fname: Union[str, os.PathLike], problem_type: str):
         """
