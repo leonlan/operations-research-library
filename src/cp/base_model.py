@@ -16,13 +16,13 @@ def base_model(data):
     Creates a base model and variables for the permutation flow shop problem.
     This can be extended with different constraints and objective functions.
     """
-    mdl = docp.CpoModel()
+    model = docp.CpoModel()
 
-    tasks = create_task_interval_variables(data, mdl)
-    no_overlap_between_machines(data, mdl, tasks)
+    tasks = create_task_interval_variables(data, model)
+    no_overlap_between_machines(data, model, tasks)
 
-    sequences = create_sequence_variables(data, mdl, tasks)
-    no_overlap_on_machines(data, sequences, mdl)
-    same_sequence_on_each_machine(data, sequences, mdl)
+    sequences = create_sequence_variables(data, model, tasks)
+    no_overlap_on_machines(data, sequences, model)
+    same_sequence_on_each_machine(data, sequences, model)
 
-    return mdl, tasks, sequences
+    return model, tasks, sequences

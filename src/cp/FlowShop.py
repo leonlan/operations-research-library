@@ -3,7 +3,7 @@ from .constraints.minimize_makespan import minimize_makespan
 
 
 def FlowShop(data):
-    mdl, tasks, _ = base_model(data)
-    minimize_makespan(data, mdl, tasks)
+    model, tasks, _ = base_model(data)
+    minimize_makespan(data, model, tasks)
 
-    return mdl
+    return model
