@@ -14,6 +14,7 @@ def UnrelatedParallelMachines(data):
     tasks = {j: model.interval_var(name="T") for j in data.jobs}
     assign = create_assignment_variables(data, model)
 
+    # Constraints
     assign_job_to_one_machine(data, model, tasks, assign)
     no_overlap_machine(data, model, assign)
     machine_eligibility(data, model, assign)
@@ -28,9 +29,9 @@ def create_assignment_variables(data, model):
     for j, i in product(data.jobs, data.machines):
         name = f"A_{j}_{i}"
         size = data.processing[j][i]
-        assign[(j, i)] = model.interval_var(
-            name=name, size=size, optional=True
-        )
+        var = model.interval_var(name=name, size=size, optional=True)
+
+        assign[(j, i)] = var
 
     return assign
 
@@ -44,8 +45,9 @@ def assign_job_to_one_machine(data, model, tasks, assign):
     """
     for j in data.jobs:
         intervals = [assign[(j, i)] for i in data.machines]
-        cons = model.alternative(tasks[j], intervals)
-        model.add(cons)
+        constraint = model.alternative(tasks[j], intervals)
+
+        model.add(constraint)
 
 
 def no_overlap_machine(data, model, assign):
@@ -57,8 +59,9 @@ def no_overlap_machine(data, model, assign):
     """
     for i in data.machines:
         sequence = model.sequence_var([assign[(j, i)] for j in data.jobs])
-        cons = model.no_overlap(sequence, data.setup[i])
-        model.add(cons)
+        constraint = model.no_overlap(sequence, data.setup[i])
+
+        model.add(constraint)
 
 
 def machine_eligibility(data, model, assignments):
@@ -69,8 +72,9 @@ def machine_eligibility(data, model, assignments):
     """
     for job, machine in product(data.jobs, data.machines):
         if not data.eligible[job][machine]:
-            cons = model.presence_of(assignments[(job, machine)]) == 0
-            model.add(cons)
+            constraint = model.presence_of(assignments[(job, machine)]) == 0
+
+            model.add(constraint)
 
 
 def minimize_makespan(data, model, tasks):
