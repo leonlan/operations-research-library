@@ -3,10 +3,12 @@ from itertools import product
 import docplex.cp.model as docp
 
 from .constraints.add_task_interval_variables import (
-    add_task_interval_variables,
+    create_task_interval_variables,
 )
 from .constraints.minimize_makespan import minimize_makespan
-from .constraints.no_overlap_jobs import no_overlap_jobs
+from .constraints.no_overlap_between_machines import (
+    no_overlap_between_machines,
+)
 
 
 def HybridFlowShop(data, model="explicit"):
@@ -27,13 +29,13 @@ def HybridFlowShopPulse(data):
     """
     mdl = docp.CpoModel()
 
-    tasks = add_task_interval_variables(data, mdl)
+    tasks = create_task_interval_variables(data, mdl)
 
     for i in range(data.num_stages):
         expr = [mdl.pulse(tasks[j][i], 1) for j in range(data.num_jobs)]
         mdl.add(mdl.sum(expr) <= data.machines[i])
 
-    no_overlap_jobs(data, mdl, tasks)
+    no_overlap_between_machines(data, mdl, tasks)
 
     minimize_makespan(data, mdl, tasks)
 
@@ -51,8 +53,10 @@ def HybridFlowShopExplicit(data):
 
     # _tasks are interval variables for each (job, stage) pair to be used
     # for sequencing constraints.
-    _tasks = add_task_interval_variables(data, mdl, include_processing=False)
-    no_overlap_jobs(data, mdl, _tasks)
+    _tasks = create_task_interval_variables(
+        data, mdl, include_processing=False
+    )
+    no_overlap_between_machines(data, mdl, _tasks)
 
     # tasks are interval variables for each (job, stage, machine) triple
     # to be used for assignment constraints.

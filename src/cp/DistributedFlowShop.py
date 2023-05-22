@@ -2,7 +2,7 @@ from itertools import product
 
 import docplex.cp.model as docp
 
-from .constraints import add_task_interval_variables
+from .constraints import create_task_interval_variables
 from .constraints.minimize_makespan import minimize_makespan
 
 
@@ -11,7 +11,7 @@ def DistributedFlowShop(data):
 
     tasks = make_tasks_variables(data, mdl)
 
-    _tasks = add_task_interval_variables(data, mdl)
+    _tasks = create_task_interval_variables(data, mdl)
     seq_var = make_sequence_variables(data, mdl, tasks)
 
     no_overlap_jobs(data, mdl, _tasks)

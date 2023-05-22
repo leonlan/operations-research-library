@@ -11,31 +11,27 @@ def UnrelatedParallelMachines(data):
     mdl = docp.CpoModel()
 
     # Variables
-    tasks = [mdl.interval_var(name=f"T_{j}") for j in range(data.num_jobs)]
-    assignments = [
-        [
-            mdl.interval_var(
-                name=f"A_{j}_{i}", size=data.processing[j][i], optional=True
-            )
-            for i in range(data.num_machines)
-        ]
-        for j in range(data.num_jobs)
-    ]
-    sequences = [
-        mdl.sequence_var([assignments[j][i] for j in range(data.num_jobs)])
+    tasks = {j: mdl.interval_var(name=f"T_{j}") for j in range(data.num_jobs)}
+    assign = {
+        (j, i): mdl.interval_var(
+            name=f"A_{j}_{i}", size=data.processing[j][i], optional=True
+        )
+        for i, j in product(range(data.num_machines), range(data.num_jobs))
+    }
+    sequences = {
+        i: mdl.sequence_var([assign[(j, i)] for j in range(data.num_jobs)])
         for i in range(data.num_machines)
-    ]
+    }
 
-    # Constraints
-    assign_one_machine(data, mdl, tasks, assignments)
+    assign_job_to_one_machine(data, mdl, tasks, assign)
     no_overlap_machine(data, mdl, sequences)
-    machine_eligibility(data, mdl, assignments)
+    machine_eligibility(data, mdl, assign)
     minimize_makespan(data, mdl, tasks)
 
     return mdl
 
 
-def assign_one_machine(data, mdl, tasks, operations):
+def assign_job_to_one_machine(data, mdl, tasks, operations):
     """
     Each job is assigned to exactly one machine by implementing the following
     constraint:
@@ -69,7 +65,7 @@ def machine_eligibility(data, mdl, assignments):
         range(data.num_jobs), range(data.num_machines)
     ):
         if not data.eligible[job][machine]:
-            cons = mdl.presence_of(assignments[job][machine]) == 0
+            cons = mdl.presence_of(assignments[(job, machine)]) == 0
             mdl.add(cons)
 
 

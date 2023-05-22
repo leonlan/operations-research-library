@@ -21,7 +21,7 @@ def ComplexDistributedFlowShop(data: ProblemData) -> docp.CpoModel:
 
     no_overlap_between_units(data, model, tasks)
     no_overlap_on_unit(data, model, sequences)
-    same_sequence_each_unit(data, model, sequences)
+    same_sequence_on_each_unit(data, model, sequences)
 
     minimize_makespan(data, model, tasks)
 
@@ -83,7 +83,7 @@ def no_overlap_between_units(data, model, tasks):
         model.add(cons)
 
 
-def same_sequence_each_unit(data, model, sequences):
+def same_sequence_on_each_unit(data, model, sequences):
     """
     Ensures that the sequence of jobs on each machine is the same for each
     line. It implements the constraint

@@ -1,4 +1,4 @@
-def add_task_interval_variables(data, mdl, include_processing=True):
+def create_task_interval_variables(data, mdl, include_processing=True):
     if include_processing:
         return [
             [

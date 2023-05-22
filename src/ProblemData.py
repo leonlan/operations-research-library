@@ -35,6 +35,8 @@ class ProblemData:
 
         # Additional useful problem data
         self.num_lines = self.num_factories
+        self.num_units = self.num_machines
+
         self.jobs = list(range(self.num_jobs))
         self.stages = list(range(self.num_stages))
         self.lines = list(range(self.num_lines))
