@@ -19,7 +19,7 @@ def dpfsresult2plot(data, result, fname):
     """
     schedule = []
 
-    for i, k in product(range(data.num_machines), range(data.num_factories)):
+    for i, k in product(data.machines, range(data.num_factories)):
         # Only get the first machine because we assume permutation flow shops.
         seq_var = result.get_var_solution(f"S_{i}_{k}")
 

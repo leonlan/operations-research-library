@@ -33,8 +33,8 @@ def make_tasks_variables(data, model):
     """
     Creates an interval variable for each job, machine and factory combination.
     """
-    jobs = range(data.num_jobs)
-    machines = range(data.num_machines)
+    jobs = data.jobs
+    machines = data.machines
     factories = range(data.num_factories)
 
     tasks = [[[] for _ in machines] for _ in jobs]
@@ -57,12 +57,10 @@ def make_sequence_variables(data, model, tasks):
     """
     seq_var = [
         [
-            model.sequence_var(
-                [tasks[j][i][k] for j in (range(data.num_jobs))]
-            )
+            model.sequence_var([tasks[j][i][k] for j in (data.jobs)])
             for k in (range(data.num_factories))
         ]
-        for i in (range(data.num_machines))
+        for i in (data.machines)
     ]
     return seq_var
 
@@ -75,7 +73,7 @@ def no_overlap_jobs(data, model, _tasks):
 
         NoOverlap(Task[j][i-1], Task[j][i])
     """
-    for j, i in product(range(data.num_jobs), range(1, data.num_machines)):
+    for j, i in product(data.jobs, range(1, data.num_machines)):
         model.add(model.end_before_start(_tasks[j][i - 1], _tasks[j][i]))
 
 
@@ -104,7 +102,7 @@ def no_overlap_machines(data, model, seq_var):
     for each machine $i$ and factory $k$ combination.
     """
 
-    for i, k in product(range(data.num_machines), range(data.num_factories)):
+    for i, k in product(data.machines, range(data.num_factories)):
         model.add(model.no_overlap(seq_var[i][k]))
 
 
@@ -117,7 +115,7 @@ def assign_one_factory(data, model, tasks, _tasks):
 
     for each job $j$ and machine $i$ combination.
     """
-    for j, i in product(range(data.num_jobs), range(data.num_machines)):
+    for j, i in product(data.jobs, data.machines):
         subexpr = [tasks[j][i][k] for k in (range(data.num_factories))]
         model.add(model.alternative(_tasks[j][i], subexpr))
 
@@ -132,7 +130,7 @@ def schedule_all_units_if_assigned(data, model, tasks):
     for each job $j$, machine $i$ and factory $k$ combination.
     """
     for j, i, k in product(
-        range(data.num_jobs),
+        data.jobs,
         range(1, data.num_machines),
         range(data.num_factories),
     ):

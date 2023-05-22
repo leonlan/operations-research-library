@@ -19,23 +19,18 @@ def ParallelMachine(data, model):
     """
 
     machine = [
-        model.integer_var(min=0, max=data.num_machines - 1)
-        for _ in range(data.num_jobs)
+        model.integer_var(min=0, max=data.num_machines - 1) for _ in data.jobs
     ]
     duration = [
-        model.element(data.processing[j], machine[j])
-        for j in range(data.num_jobs)
+        model.element(data.processing[j], machine[j]) for j in data.jobs
     ]
 
     def load(i):
-        return [
-            data.processing[j][i] * (machine[j] == i)
-            for j in range(data.num_jobs)
-        ]
+        return [data.processing[j][i] * (machine[j] == i) for j in data.jobs]
 
-    makespan = max([sum(load(i)) for i in range(data.num_machines)])
+    makespan = max([sum(load(i)) for i in data.machines])
 
-    lhs = sum([duration[j] for j in range(data.num_jobs)])
+    lhs = sum([duration[j] for j in data.jobs])
     model.add(lhs <= data.num_machines * makespan)
 
     model.add(model.minimize(makespan))
