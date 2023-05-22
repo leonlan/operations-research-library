@@ -11,7 +11,7 @@ def UnrelatedParallelMachines(data):
     model = docp.CpoModel()
 
     # Variables
-    tasks = model.interval_var_dict(list(data.jobs), name="T")
+    tasks = {j: model.interval_var(name="T") for j in data.jobs}
     assign = create_assignment_variables(data, model)
 
     assign_job_to_one_machine(data, model, tasks, assign)
