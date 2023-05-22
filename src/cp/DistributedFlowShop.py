@@ -2,8 +2,7 @@ from itertools import product
 
 import docplex.cp.model as docp
 
-from .constraints import create_task_interval_variables
-from .constraints.minimize_makespan import minimize_makespan
+from .constraints import create_task_interval_variables, minimize_makespan
 
 
 def DistributedFlowShop(data):
