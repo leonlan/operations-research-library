@@ -1,5 +1,4 @@
 from .ComplexDistributedFlowShop import ComplexDistributedFlowShop
-from .DistributedFlowShop import DistributedFlowShop
 from .FlowShop import FlowShop
 from .HybridFlowShop import HybridFlowShop
 from .ParallelMachine import ParallelMachine
@@ -7,7 +6,6 @@ from .SetupFlowShop import SetupFlowShop
 from .UnrelatedParallelMachines import UnrelatedParallelMachines
 
 CP_MODELS = {
-    "Distributedflowshop": DistributedFlowShop,
     "Setupflowshop": SetupFlowShop,
     "Flowshop": FlowShop,
     "Tardinessflowshop": lambda data: FlowShop(
