@@ -14,7 +14,6 @@ pre-commit = "^3.2.2"
 numpy = "^1.24.2"
 gurobipy = "^10.0.1"
 ortools = "^9.6.2534"
-typer = "^0.7.0"
 matplotlib = "^3.7.1"
 tqdm = "^4.65.0"
 
@@ -45,7 +44,6 @@ ignore = [
     "E501",  # line too long, handled by black
     "E741",  # ambiguous variable name, needed for indexing
     "C901",  # too complex
-    "B008",  # function calls, needed for Typer
 ]
 
 
