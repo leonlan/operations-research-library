@@ -1,5 +1,7 @@
 import docplex.cp.model as docp
 
+from src.ProblemData import ProblemData
+
 from .constraints import (
     create_sequence_variables,
     create_task_interval_variables,
@@ -12,7 +14,29 @@ from .constraints import (
 )
 
 
-def FlowShop(data, objective="makespan"):
+def flow_shop(
+    data: ProblemData, objective: str = "makespan", include_setup: bool = False
+) -> docp.CpoModel:
+    """
+    Creates a CP model for the flow shop problem. This model can be configured
+    to solve a flow shop problem with or without setup times, and with
+    different objective functions.
+
+    Parameters
+    ----------
+    data
+        The problem data.
+    objective
+        The objective function to minimize. The default is "makespan".
+    include_setup
+        Whether to use the setup times or not. The default is False. If set,
+        then the problem data must have a ``setup`` field.
+
+    Returns
+    -------
+    CpoModel
+        The CP model for a flow shop problem.
+    """
     model = docp.CpoModel()
 
     # Variables
@@ -21,7 +45,7 @@ def FlowShop(data, objective="makespan"):
 
     # Constraints
     sequences = create_sequence_variables(data, model, tasks)
-    no_overlap_on_machines(data, sequences, model)
+    no_overlap_on_machines(data, model, sequences, include_setup)
     same_sequence_on_each_machine(data, sequences, model)
 
     # Objective
