@@ -3,7 +3,7 @@ from enum import Enum
 
 class ProblemType(Enum):
     FLOW_SHOP = "flow_shop"
-    DISTRIBUTED_FLOW_SHOP = "Distributedflow_shop"
+    DISTRIBUTED_FLOW_SHOP = "distributed_flow_shop"
     SETUP_FLOW_SHOP = "setup_flow_shop"
     TARDINESS_FLOW_SHOP = "tardiness_flow_shop"
     PARALLEL_MACHINE = "parallel_machines"
