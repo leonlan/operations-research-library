@@ -4,15 +4,15 @@ from .hybrid_flow_shop import hybrid_flow_shop
 from .parallel_machines import parallel_machines
 
 CP_MODELS = {
-    "Flowshop": flow_shop,
-    "Tardinessflowshop": lambda data: flow_shop(
+    "flow_shop": flow_shop,
+    "tardiness_flow_shop": lambda data: flow_shop(
         data, objective="total_tardiness"
     ),
-    "TCTflowshop": lambda data: flow_shop(
+    "tct_flow_shop": lambda data: flow_shop(
         data, objective="total_completion_times"
     ),
-    "Setupflowshop": lambda data: flow_shop(data, include_setup=True),
-    "Hybridflowshop": hybrid_flow_shop,
-    "Unrelatedparallelmachines": parallel_machines,
-    "Complexdistributedflowshop": distributed_flow_shop,
+    "setup_flow_shop": lambda data: flow_shop(data, include_setup=True),
+    "hybrid_flow_shop": hybrid_flow_shop,
+    "unrelated_parallel_machines": parallel_machines,
+    "distributed_flow_shop": distributed_flow_shop,
 }
