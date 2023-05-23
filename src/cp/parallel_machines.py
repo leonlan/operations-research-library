@@ -3,9 +3,9 @@ from itertools import product
 import docplex.cp.model as docp
 
 
-def UnrelatedParallelMachines(data):
+def parallel_machines(data):
     """
-    Unrelated Parallel Machines problem with sequence dependent setup times
+    Parallel Machines problem with sequence dependent setup times
     and machine eligibility constraints.
     """
     model = docp.CpoModel()

@@ -14,7 +14,7 @@ from .constraints import (
 )
 
 
-def FlowShop(
+def flow_shop(
     data: ProblemData, objective: str = "makespan", include_setup: bool = False
 ) -> docp.CpoModel:
     """

@@ -9,15 +9,15 @@ from .constraints import (
 )
 
 
-def HybridFlowShop(data, model="explicit"):
+def hybrid_flow_shop(data, model="explicit"):
     return (
-        HybridFlowShopPulse(data)
+        hybrid_flow_shop_pulse(data)
         if model == "pulse"
-        else HybridFlowShopExplicit(data)
+        else hybrid_flow_shop_explicit(data)
     )
 
 
-def HybridFlowShopPulse(data):
+def hybrid_flow_shop_pulse(data):
     """
     Hybrid Flow Shop modeled with pulse constraints. This model assumes
     that there is one big supermachine for each set of identical machines
@@ -40,7 +40,7 @@ def HybridFlowShopPulse(data):
     return model
 
 
-def HybridFlowShopExplicit(data):
+def hybrid_flow_shop_explicit(data):
     """
     Hybrid Flow Shop modeled with explicit interval variables. This model
     explicitly solves a sequencing and assignment problem, where each job

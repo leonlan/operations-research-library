@@ -5,9 +5,9 @@ import docplex.cp.model as docp
 from src.ProblemData import ProblemData
 
 
-def ComplexDistributedFlowShop(data: ProblemData) -> docp.CpoModel:
+def distributed_flow_shop(data: ProblemData) -> docp.CpoModel:
     """
-    Creates a CP model for the complex distributed flow shop problem.
+    Creates a CP model for the distributed flow shop problem.
     """
     model = docp.CpoModel()
 
