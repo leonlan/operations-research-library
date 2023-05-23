@@ -67,7 +67,7 @@ class ProblemData:
                 data["machines"] = read_line(fh)
                 data["num_stages"] = data["num_machines"]
 
-            if "distributedflow_shop" in problem_type.lower():
+            if "distributed_flow_shop" in problem_type.lower():
                 data["num_factories"] = read_line(fh)[0]
 
             if problem_type == "tardiness_flow_shop":
