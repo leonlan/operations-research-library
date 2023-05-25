@@ -70,7 +70,7 @@ def solve(
     ub = result.get_objective_values()[0]
 
     if plot_dir := kwargs.get("plot_dir", ""):
-        fname = Path(plot_dir) / f"{name}.pdf"
+        fname = Path(plot_dir) / f"{problem_type}-{name}.pdf"
         plot(data, result, problem_type, fname)
 
     elapsed_time = round(time.perf_counter() - time_start, 3)
