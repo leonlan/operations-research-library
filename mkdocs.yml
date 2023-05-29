@@ -7,7 +7,7 @@ nav:
     - Models: models.md
     - Notes: notes.md
 
-theme: readthedocs
+theme: material
 
 plugins:
   - mkdocstrings:
