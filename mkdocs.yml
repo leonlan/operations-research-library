@@ -5,8 +5,6 @@ nav:
     - Home: index.md
     - About: about.md
     - Models: models.md
-    - 'Models':
-        - Storage layers: storage-layers.md
     - Notes: notes.md
 
 theme: material
