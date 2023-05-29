@@ -9,6 +9,9 @@ nav:
 
 theme: material
 
+watch:
+- src/
+
 plugins:
   - mkdocstrings:
       handlers:
