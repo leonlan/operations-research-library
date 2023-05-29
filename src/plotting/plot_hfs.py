@@ -72,8 +72,13 @@ def hfs_plot(data, schedule, fname=None, ax=None):
         ax[stage].barh(machine, width=duration, left=start, color=colors[job])
         ax[stage].text(start + duration / 4, machine, job, va="center")
 
+    for stage in range(data.num_stages):
+        ax[stage].set_ylabel(f"Stage {stage+1}")
+
+        # Set ticks to be integers
+        ax[stage].yaxis.get_major_locator().set_params(integer=True)
+
     plt.xlabel("Time")
-    plt.ylabel("Machine")
 
     if fname is not None:
         plt.savefig(fname, bbox_inches="tight")
