@@ -18,7 +18,8 @@ matplotlib = "^3.7.1"
 tqdm = "^4.65.0"
 
 
-[tool.poetry.group.dev.dependencies]
+
+[tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.3"
 mkdocstrings = {extras = ["python"], version = "^0.22.0"}
 python-markdown-math = "^0.8"
