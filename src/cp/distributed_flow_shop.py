@@ -72,12 +72,14 @@ def create_sequence_variables(data, model, assign):
 
 def no_overlap_between_units(data, model, tasks):
     """
-    Adds a no overlap constraint for each job and machine combination, which
+    Adds a no-overlap constraint for each job and machine combination, which
     ensures that a job can start on machine $i$ only when it's completed on
     machine $i-1$.
 
-    $$\\texttt{NoOverlap}(T_{j, i-1}, T_{j,i}).$$
-
+    \\begin{equation}
+        \\texttt{NoOverlap}(T_{j, i-1}, T_{ji}),
+        \\quad \\forall j \\in J, i \\in M \\setminus {1}.
+    \\end{equation}
     """
     for j, u in product(data.jobs, range(1, data.num_units)):
         cons = model.end_before_start(tasks[(j, u - 1)], tasks[(j, u)])
@@ -87,11 +89,12 @@ def no_overlap_between_units(data, model, tasks):
 def same_sequence_on_each_unit(data, model, sequences):
     """
     Ensures that the sequence of jobs on each machine is the same for each
-    line. It implements the constraint
+    line.
 
-        SameSequence(SeqVar[i][k], SeqVar[i+1][k])
-
-    for each machine $i$ and line $k$ combination.
+    \\begin{equation}
+        \\texttt{SameSequence}(S_{ik}, S_{i+1,k}),
+        \\quad \\forall i \\in M, k \\in L.
+    \\end{equation}
     """
     for u, l in product(range(data.num_units - 1), data.lines):
         cons = model.same_sequence(sequences[(u, l)], sequences[(u + 1, l)])
