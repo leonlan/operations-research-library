@@ -20,6 +20,7 @@ tqdm = "^4.65.0"
 
 [tool.poetry.group.dev.dependencies]
 mkdocs = "^1.4.3"
+mkdocstrings = {extras = ["python"], version = "^0.22.0"}
 
 [build-system]
 requires = ["poetry-core"]
