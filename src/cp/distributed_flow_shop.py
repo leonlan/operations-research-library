@@ -76,7 +76,8 @@ def no_overlap_between_units(data, model, tasks):
     ensures that a job can start on machine $i$ only when it's completed on
     machine $i-1$.
 
-        NoOverlap(Tasks[j][i-1], Tasks[j][i])
+    $$\\texttt{NoOverlap}(T_{j, i-1}, T_{j,i}).$$
+
     """
     for j, u in product(data.jobs, range(1, data.num_units)):
         cons = model.end_before_start(tasks[(j, u - 1)], tasks[(j, u)])
