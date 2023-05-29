@@ -4,9 +4,9 @@ site_url: https://example.com/
 nav:
     - Home: index.md
     - About: about.md
-    - Models: models.md
     - 'Models':
-        - Storage layers: storage-layer.md
+        - Distributed flow shop: models/distributed-flow-shop.md
+        - Storage layers: models/storage-layer.md
     - Notes: notes.md
 
 theme: material
