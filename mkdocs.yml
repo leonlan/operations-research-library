@@ -14,8 +14,11 @@ plugins:
       handlers:
         python:
           options:
+            docstring_style: numpy
+            docstring_section_style: spacy
             members_order: source
             show_submodules: true
+            show_signature: false
 
 # Render LaTeX with MathJax
 extra_javascript:
