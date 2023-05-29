@@ -13,3 +13,12 @@ plugins:
       handlers:
         python:
           paths: [src]  # search packages in the src folder
+
+extra_javascript:
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+
+markdown_extensions:
+  - markdown.extensions.codehilite:
+      use_pygments: true
+  - mdx_math:
+      enable_dollar_delimiter: true
