@@ -8,9 +8,11 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.9"
-  commands:
-   - pip install poetry
-   - poetry install --with docs
 
 mkdocs:
   configuration: mkdocs.yml
+
+python:
+   install:
+   - pip install poetry
+   - poetry install --with docs
