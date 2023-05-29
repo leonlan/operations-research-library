@@ -28,3 +28,5 @@ markdown_extensions:
   - mdx_math:
       # Enables $ for inline math.
       enable_dollar_delimiter: true
+  - toc:
+      permalink: true

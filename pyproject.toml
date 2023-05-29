@@ -24,6 +24,7 @@ mkdocstrings = {extras = ["python"], version = "^0.22.0"}
 python-markdown-math = "^0.8"
 pygments = "^2.15.1"
 mkdocs-material = "^9.1.14"
+mkdocs-material-extensions = "^1.1.1"
 
 [build-system]
 requires = ["poetry-core"]
