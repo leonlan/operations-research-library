@@ -12,13 +12,15 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [src]  # search packages in the src folder
+          options:
+            members_order: source
+            show_submodules: true
 
+# Render LaTeX with MathJax
 extra_javascript:
   - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML
 
 markdown_extensions:
-  - markdown.extensions.codehilite:
-      use_pygments: true
   - mdx_math:
+      # Enables $ for inline math.
       enable_dollar_delimiter: true
