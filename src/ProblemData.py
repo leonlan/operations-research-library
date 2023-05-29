@@ -27,11 +27,23 @@ class ProblemData:
         self.num_factories = num_factories
         self.due_dates = due_dates if due_dates is not None else []
         self.setup = setup if setup is not None else []
+
         # num machines per stage
-        self.machines = machines if machines is not None else []
+        self.machines = (
+            machines if machines is not None else range(num_machines)
+        )
         self.eligible = eligible if eligible is not None else []
 
         self.num_stages = num_stages
+
+        # Additional useful problem data
+        self.num_lines = self.num_factories
+        self.num_units = self.num_machines
+
+        self.jobs = list(range(self.num_jobs))
+        self.stages = list(range(self.num_stages))
+        self.lines = list(range(self.num_lines))
+        self.units = list(range(self.num_machines))
 
     @classmethod
     def from_file(cls, fname: Union[str, os.PathLike], problem_type: str):
@@ -51,33 +63,36 @@ class ProblemData:
             data["num_jobs"] = read_line(fh)[0]
             data["num_machines"] = read_line(fh)[0]
 
-            if problem_type == "Hybridflowshop":
+            if problem_type == "hybrid_flow_shop":
                 data["machines"] = read_line(fh)
                 data["num_stages"] = data["num_machines"]
 
-            if "distributedflowshop" in problem_type.lower():
+            if "distributed_flow_shop" in problem_type.lower():
                 data["num_factories"] = read_line(fh)[0]
 
-            if problem_type == "Tardinessflowshop":
+            if problem_type == "tardiness_flow_shop":
                 data["due_dates"] = read_line(fh)
 
             data["processing"] = [
                 read_line(fh) for _ in range(data["num_jobs"])
             ]
 
-            if problem_type in ["Setupflowshop", "Unrelatedparallelmachines"]:
+            if problem_type in [
+                "setup_flow_shop",
+                "unrelated_parallel_machines",
+            ]:
                 data["setup"] = [
                     [read_line(fh) for _ in range(data["num_jobs"])]
                     for _ in range(data["num_machines"])
                 ]
 
-            if problem_type == "Unrelatedparallelmachines":
+            if problem_type == "unrelated_parallel_machines":
                 data["eligible"] = (
                     np.ones_like(data["processing"]).astype(int).tolist()
                 )
 
-            if problem_type == "Hybridflowshop":
-                # HACK to add setup and eligibility data to hybrid flowshop
+            if problem_type == "hybrid_flow_shop":
+                # HACK to add setup and eligibility data to hybrid flow_shop
                 n_jobs, n_stages, n_machines = (
                     data["num_jobs"],
                     data["num_stages"],
@@ -90,7 +105,7 @@ class ProblemData:
                 shape_setup = (n_jobs, n_jobs, n_stages, n_machines)
                 data["setup"] = np.ones(shape_setup).astype(int)
 
-            if problem_type == "Complexdistributedflowshop":
+            if problem_type == "distributed_flow_shop":
                 # HACK Adding unrelated machines, setup and eligibility data
                 # to complex distributed flow shop.
                 num_jobs = data["num_jobs"]

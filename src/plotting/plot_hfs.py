@@ -11,7 +11,7 @@ def hfsresult2plot(data, result, fname):
     """
     schedule = []
 
-    for job, stage in product(range(data.num_jobs), range(data.num_stages)):
+    for job, stage in product(data.jobs, data.stages):
         for machine in range(data.machines[stage]):
             var = result.get_var_solution(f"A_{job}_{stage}_{machine}")
             if var.is_absent():
@@ -29,13 +29,13 @@ def hfsresult2schedules(data, result):
     """
     schedules = []
 
-    for stage in range(data.num_stages):
+    for stage in data.stages:
         schedule = []
 
         for machine in range(data.machines[stage]):
             job_start = []
 
-            for job in range(data.num_jobs):
+            for job in data.jobs:
                 var = result.get_var_solution(f"A_{job}_{stage}_{machine}")
 
                 if not var.is_absent():
@@ -72,8 +72,13 @@ def hfs_plot(data, schedule, fname=None, ax=None):
         ax[stage].barh(machine, width=duration, left=start, color=colors[job])
         ax[stage].text(start + duration / 4, machine, job, va="center")
 
+    for stage in range(data.num_stages):
+        ax[stage].set_ylabel(f"Stage {stage+1}")
+
+        # Set ticks to be integers
+        ax[stage].yaxis.get_major_locator().set_params(integer=True)
+
     plt.xlabel("Time")
-    plt.ylabel("Machine")
 
     if fname is not None:
         plt.savefig(fname, bbox_inches="tight")

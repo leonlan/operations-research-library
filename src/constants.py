@@ -2,12 +2,12 @@ from enum import Enum
 
 
 class ProblemType(Enum):
-    FLOW_SHOP = "Flowshop"
-    DISTRIBUTED_FLOW_SHOP = "Distributedflowshop"
-    SETUP_FLOW_SHOP = "Setupflowshop"
-    TARDINESS_FLOW_SHOP = "Tardinessflowshop"
-    PARALLEL_MACHINE = "Parallelmachine"
-    TCT_FLOW_SHOP = "TCTflowshop"
-    HYBRID_FLOW_SHOP = "Hybridflowshop"
-    UNRELATED_PARALLEL_MACHINES = "Unrelatedparallelmachines"
-    COMPLEX_DISTRIBUTED_FLOW_SHOP = "Complexdistributedflowshop"
+    FLOW_SHOP = "flow_shop"
+    DISTRIBUTED_FLOW_SHOP = "distributed_flow_shop"
+    SETUP_FLOW_SHOP = "setup_flow_shop"
+    TARDINESS_FLOW_SHOP = "tardiness_flow_shop"
+    PARALLEL_MACHINE = "parallel_machines"
+    TCT_FLOW_SHOP = "tct_flow_shop"
+    HYBRID_FLOW_SHOP = "hybrid_flow_shop"
+    UNRELATED_PARALLEL_MACHINES = "unrelated_parallel_machines"
+    COMPLEX_DISTRIBUTED_FLOW_SHOP = "distributed_flow_shop"

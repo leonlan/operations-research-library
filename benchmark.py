@@ -70,7 +70,7 @@ def solve(
     ub = result.get_objective_values()[0]
 
     if plot_dir := kwargs.get("plot_dir", ""):
-        fname = Path(plot_dir) / f"{name}.pdf"
+        fname = Path(plot_dir) / f"{problem_type}-{name}.pdf"
         plot(data, result, problem_type, fname)
 
     elapsed_time = round(time.perf_counter() - time_start, 3)
@@ -122,13 +122,13 @@ def benchmark(instances: List[str], **kwargs):
 
 def plot(data, result, problem_type, fname):
     print(fname)
-    if problem_type == "Unrelatedparallelmachines":
+    if problem_type == "unrelated_parallel_machines":
         src.plotting.upmresult2plot(data, result, fname)
 
-    if problem_type == "Hybridflowshop":
+    if problem_type == "hybrid_flow_shop":
         src.plotting.hfsresult2plot(data, result, fname)
 
-    if problem_type == "Complexdistributedflowshop":
+    if problem_type == "distributed_flow_shop":
         src.plotting.dpfsresult2plot(data, result, fname)
 
 
