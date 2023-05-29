@@ -1,0 +1,35 @@
+site_name: CP scheduling
+site_url: https://example.com/
+
+nav:
+    - Home: index.md
+    - About: about.md
+    - Models: models.md
+    - Notes: notes.md
+
+theme: material
+
+watch:
+- src/
+
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            docstring_section_style: spacy
+            members_order: source
+            show_submodules: true
+            show_signature: false
+
+# Render LaTeX with MathJax
+extra_javascript:
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+
+markdown_extensions:
+  - mdx_math:
+      # Enables $ for inline math.
+      enable_dollar_delimiter: true
+  - toc:
+      permalink: true
