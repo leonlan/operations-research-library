@@ -51,7 +51,7 @@ def instance2data(instance: Dict) -> ProblemData:
     )
 
 
-def vehicle_routing_problem_time_windows() -> docp.CpoModel:
+def vehicle_routing_problem_time_windows(data: ProblemData) -> docp.CpoModel:
     """
     Creates a CP model for the Vehicle Routing Problem with Time Windows
     (VRPTW) based on the formulation presented in [Laborie2018].
@@ -63,9 +63,6 @@ def vehicle_routing_problem_time_windows() -> docp.CpoModel:
     Laborie, P., Rogerie, J., Shaw, P., & Vilím, P. (2018).
     IBM ILOG CP optimizer for scheduling. Constraints, 23(2), 210–250.
     """
-    instance = read_instance("instances/C101.txt", instance_format="solomon")
-    data = instance2data(instance)
-
     model = docp.CpoModel()
 
     visits = create_visit_variables(model, data)
@@ -109,13 +106,13 @@ def create_visit_variables(model, data):
 
 def create_vehicle_visit_variables(model, data):
     """
-    Creates the vehicle visit variables $V_{ik}$ for each vehicle
+    Creates the optional vehicle visit variables $V_{ik}$ for each vehicle
     $k \\in K$ and location $i \\in N$ (including depots!).
     """
     vvisits = {}
 
     for vehicle, location in product(data.vehicles, data.locations):
-        var = model.interval_var(name=f"T_{vehicle}_{location}")
+        var = model.interval_var(name=f"T_{vehicle}_{location}", optional=True)
         vvisits[(vehicle, location)] = var
 
     return vvisits
@@ -221,4 +218,29 @@ def assign_each_client_to_one_vehicle(model, data, visit, vvisits):
 
 
 if __name__ == "__main__":
-    vehicle_routing_problem_time_windows()
+    instance = read_instance("instances/C101.txt", instance_format="solomon")
+    data = instance2data(instance)
+
+    model = vehicle_routing_problem_time_windows(data)
+    result = model.solve(
+        TimeLimit=1,
+        LogVerbosity="Terse",
+    )
+
+    def result2solution(result):
+        solution = []
+
+        for vehicle in data.vehicles:
+            route = []
+
+            for interval in result.get_var_solution(
+                f"R_{vehicle}"
+            ).get_interval_variables():
+                route.append(interval.get_name())
+
+            solution.append(route)
+
+        return solution
+
+    solution = result2solution(result)
+    print(solution)
