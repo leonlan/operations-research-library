@@ -1,5 +1,8 @@
 site_name: CP scheduling
-site_url: https://example.com/
+site_url: https://cp-scheduling.readthedocs.io/en/latest/
+repo_url: https://github.com/leonlan/cp-scheduling
+edit_uri: edit/main/docs/
+repo_name: leonlan/cp-scheduling
 
 nav:
     - Home: index.md
@@ -7,7 +10,12 @@ nav:
     - Models: models.md
     - Notes: notes.md
 
-theme: material
+theme:
+  name: material
+  features:
+    - content.action.view
+  icon:
+    repo: fontawesome/brands/github
 
 watch:
 - src/
