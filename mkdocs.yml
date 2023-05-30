@@ -1,5 +1,8 @@
 site_name: CP scheduling
-site_url: https://example.com/
+site_url: https://cp-scheduling.readthedocs.io/en/latest/
+repo_url: https://github.com/leonlan/cp-scheduling
+edit_uri: edit/main/docs/
+repo_name: leonlan/cp-scheduling
 
 nav:
     - Home: index.md
@@ -9,7 +12,12 @@ nav:
         - Storage layers: models/storage-layer.md
     - Notes: notes.md
 
-theme: material
+theme:
+  name: material
+  features:
+    - content.action.view
+  icon:
+    repo: fontawesome/brands/github
 
 watch:
 - src/
@@ -24,6 +32,16 @@ plugins:
             members_order: source
             show_submodules: true
             show_signature: false
+  # "Last updated" and "created" datetime stamps on each page.
+  - git-revision-date-localized:
+      timezone: Europe/Amsterdam
+      locale: en
+      fallback_to_build_date: false
+      enable_creation_date: true
+      exclude:
+          - index.md
+      enabled: true
+      strict: true
 
 # Render LaTeX with MathJax
 extra_javascript:
