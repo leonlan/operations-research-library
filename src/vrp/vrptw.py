@@ -97,11 +97,11 @@ def routes_start_and_end_at_depot(model, data, vvisits, routes):
     \\begin{align}
         \\texttt{PresenceOf}(V_{0k}) = 1,
         &\\quad \\forall k \\in K, \\\\
-        \\texttt{PresenceOf}(V_{(n+1),k}) = 1,
+        \\texttt{PresenceOf}(V_{n+1,k}) = 1,
         &\\quad \\forall k \\in K, \\\\
         \\texttt{First}(R_{k}, V_{0k}),
         &\\quad \\forall k \\in K, \\\\
-        \\texttt{Last}(R_{k}, V_{(n+1),k}),
+        \\texttt{Last}(R_{k}, V_{n+1,k}),
         &\\quad \\forall k \\in K.
     \\end{align}
 
