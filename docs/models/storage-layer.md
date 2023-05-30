@@ -1,15 +1,13 @@
 # Storage layers
 
-A storage layer is a stage in which jobs do not need to be processed, i.e.,
-they do not have any processing times. Instead, the intervals are
-constrained by intra-stage constraints.
+A storage layer is a stage in which jobs do not need to be processed, i.e., they do not have any processing times. 
+Instead, the intervals are constrained by intra-stage constraints.
 
-Moreover, storage layers (in the application in compound feed production)
-must take into account multi-level product characteristics to avoid
-contamination of goods.
+Moreover, storage layers (in the application in compound feed production) must take into account multi-level product characteristics to avoid contamination of goods.
+In this example, we assume that the jobs are _products_, which consists of one or multiple production batches.
+Both "jobs" need to be scheduled, but some constraints only apply to the products, whereas some only apply to the batches.
 
-The machine layout conists of a set of production lines, each of whch
-consists of one unrelated machine (i.e., storage) unit.
+The machine layout consists of a set of production lines, each of which consists of one unrelated machine (i.e., storage) unit.
 
 This model uses the following variables:
 
