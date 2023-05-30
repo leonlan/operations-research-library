@@ -22,6 +22,16 @@ plugins:
             members_order: source
             show_submodules: true
             show_signature: false
+  # "Last updated" and "created" datetime stamps on each page.
+  - git-revision-date-localized:
+      timezone: Europe/Amsterdam
+      locale: en
+      fallback_to_build_date: false
+      enable_creation_date: true
+      exclude:
+          - index.md
+      enabled: true
+      strict: true
 
 # Render LaTeX with MathJax
 extra_javascript:
