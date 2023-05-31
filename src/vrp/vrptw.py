@@ -46,6 +46,7 @@ def instance2data(instance: Dict) -> ProblemData:
 
     service_times = append_depot_data(instance["service_time"])
     time_windows = append_depot_data(instance["time_window"])
+    demand = append_depot_data(instance["demand"])
 
     # DIMACS convention: scale all time durations by 10 and truncate
     def scale_and_truncate(array):
@@ -62,7 +63,7 @@ def instance2data(instance: Dict) -> ProblemData:
         edge_weights=distance_matrix,
         service_time=service_times,
         time_windows=time_windows,
-        demand=instance["demand"],
+        demand=demand,
     )
 
 
@@ -81,6 +82,7 @@ def vehicle_routing_problem_time_windows(data: ProblemData) -> docp.CpoModel:
     model = docp.CpoModel()
 
     visits = create_visit_variables(model, data)
+    # TODO vvisit indexing does not correspond to text
     vvisits = create_vehicle_visit_variables(model, data)
     routes = create_route_variables(model, data, vvisits)
 
@@ -89,8 +91,7 @@ def vehicle_routing_problem_time_windows(data: ProblemData) -> docp.CpoModel:
     no_overlap_between_visits(model, data, routes)
     routes_start_and_end_at_depot(model, data, vvisits, routes)
     assign_each_client_to_one_vehicle(model, data, visits, vvisits)
-
-    # TODO capacity constraints
+    do_not_exceed_vehicle_capacity(model, data, routes)
 
     return model
 
@@ -235,6 +236,28 @@ def assign_each_client_to_one_vehicle(model, data, visit, vvisits):
     for client in data.clients:
         optional = [vvisits[(k, client)] for k in data.vehicles]
         model.add(model.alternative(visit[client], optional))
+
+
+def do_not_exceed_vehicle_capacity(model, data, routes):
+    """
+    This constraint ensures that the total demand of the clients visited by
+    a vehicle does not exceed the vehicle capacity.
+
+    \\begin{equation}
+        \\sum_{i \\in N} \\texttt{PresenceOf}(V_{ik}) \\cdot q_{i}
+        \\leq Q_{k},
+        \\quad \\forall k \\in K.
+    \\end{equation}
+    """
+    for vehicle in data.vehicles:
+        route = routes[vehicle]
+        demands = []
+
+        for loc_idx, var in enumerate(route.get_interval_variables()):
+            demands.append(model.presence_of(var) * data.demand[loc_idx])
+
+        cons = model.sum(demands) <= data.capacity
+        model.add(cons)
 
 
 if __name__ == "__main__":
