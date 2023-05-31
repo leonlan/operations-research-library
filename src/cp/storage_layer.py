@@ -31,7 +31,7 @@ def create_batch_tasks(model, data):
 
 def create_product_tasks(model, data):
     """
-    Creates a task interval variable $Tp_{pu}$ for each product $p \\in P$.
+    Creates a task interval variable $Tp_{p}$ for each product $p \\in P$.
     """
     tasks = {j: model.interval_var(name=f"Tp_{j}") for j in data.products}
     return tasks
@@ -86,7 +86,7 @@ def products_span_batches(data, model, product_tasks, batches_tasks):
 
     \\begin{equation}
         \\texttt{Span}(Tp_{p}, \\{T_{b} : b \\in B_p \\})
-        \\quad \\forall p \\in P.
+        \\quad \\forall p \\in P,
     \\end{equation}
 
     where $B_p$ denotes the set of batches that belong to product $p$.

@@ -12,7 +12,7 @@ The machine layout consists of a set of production lines, each of which consists
 This model uses the following variables:
 
 - $T_b$: interval variable for batch $b$
-- $Tp_b$: interval variable for product $p$
+- $Tp_p$: interval variable for product $p$
 - $Ap_{pi}$: interval assignment variable for product $p$ on machine $i$
 - $Sp_i$: sequence variable of product assignment variables on machine $i$
 
