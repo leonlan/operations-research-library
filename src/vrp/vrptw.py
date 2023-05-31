@@ -31,7 +31,7 @@ def instance2data(instance: Dict) -> ProblemData:
     depot. We only need it for the edge weights.
     """
     num_locs = instance["demand"].size + 1
-    distance_matrix = np.zeros((num_locs, num_locs), dtype=int)
+    distance_matrix = np.zeros((num_locs, num_locs))
     distance_matrix[:-1, :-1] = instance["edge_weight"]
 
     for idx in range(num_locs - 1):
@@ -40,13 +40,18 @@ def instance2data(instance: Dict) -> ProblemData:
         distance_matrix[num_locs - 1, idx] = instance["edge_weight"][0, idx]
         distance_matrix[idx, num_locs - 1] = instance["edge_weight"][idx, 0]
 
+    # DIMACS convention: scale all time durations by 10 and truncate
+    distance_matrix = np.floor(distance_matrix * 10).astype(int)
+    service_times = instance["service_time"] * 10
+    time_windows = instance["time_window"] * 10
+
     return ProblemData(
         num_vehicles=instance["vehicles"],
         capacity=instance["capacity"],
         num_locations=num_locs,
         edge_weights=distance_matrix,
-        service_time=instance["service_time"],
-        time_windows=instance["time_window"],
+        service_time=service_times,
+        time_windows=time_windows,
         demand=instance["demand"],
     )
 
@@ -136,19 +141,21 @@ def create_route_variables(model, data, vvisits):
 
 def minimize_total_travel_time(model, data, vvisits):
     """
-    Minimizes the total travel time of all vehicles.
+    Minimizes the total travel time of all vehicles. This excludes the service
+    time at the clients, but includes possible waiting times.
+    # TODO how can we remove waiting times?
 
     \\begin{equation}
-        \\texttt{Minimize}(
-            \\sum_{k \\in K} \\texttt{EndOf}(V_{k, n+1})
-        )
+        \\min \\sum_{k \\in K} \\texttt{EndOf}(V_{k, n+1})
+        - \\sum_{i \\in V} D_{i}.
     \\end{equation}
     """
     last = data.num_locations - 1
     completion_times = [
         model.end_of(vvisits[(k, last)]) for k in data.vehicles
     ]
-    model.minimize(model.sum(completion_times))
+    service_times = [data.service_time[i] for i in data.clients]
+    model.minimize(model.sum(completion_times) - model.sum(service_times))
 
 
 def no_overlap_between_visits(model, data, routes):
@@ -223,7 +230,7 @@ if __name__ == "__main__":
 
     model = vehicle_routing_problem_time_windows(data)
     result = model.solve(
-        TimeLimit=1,
+        TimeLimit=50,
         LogVerbosity="Terse",
     )
 
