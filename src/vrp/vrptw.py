@@ -26,10 +26,9 @@ class ProblemData:
 def instance2data(instance: Dict) -> ProblemData:
     """
     Transforms an instance dictionary into a ProblemData object.
-
-    In the CP model, we assume that there is an n+1-th location that is the
-    depot. We only need it for the edge weights.
     """
+    # In the CP model, we assume that there is an n+1-th location that is the
+    # depot. We modify the data accordingly.
     num_locs = instance["demand"].size + 1
     distance_matrix = np.zeros((num_locs, num_locs))
     distance_matrix[:-1, :-1] = instance["edge_weight"]
@@ -40,10 +39,21 @@ def instance2data(instance: Dict) -> ProblemData:
         distance_matrix[num_locs - 1, idx] = instance["edge_weight"][0, idx]
         distance_matrix[idx, num_locs - 1] = instance["edge_weight"][idx, 0]
 
+    def append_depot_data(array):
+        lst = array.tolist()  # TODO refactor
+        lst.append(lst[0])
+        return np.array(lst)
+
+    service_times = append_depot_data(instance["service_time"])
+    time_windows = append_depot_data(instance["time_window"])
+
     # DIMACS convention: scale all time durations by 10 and truncate
-    distance_matrix = np.floor(distance_matrix * 10).astype(int)
-    service_times = instance["service_time"] * 10
-    time_windows = instance["time_window"] * 10
+    def scale_and_truncate(array):
+        return np.floor(array * 10).astype(int)
+
+    distance_matrix = scale_and_truncate(distance_matrix)
+    service_times = scale_and_truncate(service_times)
+    time_windows = scale_and_truncate(time_windows)
 
     return ProblemData(
         num_vehicles=instance["vehicles"],
@@ -96,14 +106,7 @@ def create_visit_variables(model, data):
     visits = {}
 
     for client in data.clients:
-        service_time = data.service_time[client]
-        var = model.interval_var(name=f"T_{client}", size=service_time)
-
-        # Set time window constraints on visit variables
-        tw_early, tw_late = data.time_windows[client]
-        var.set_start_min(tw_early)
-        var.set_end_max(tw_late + service_time)
-
+        var = model.interval_var(name=f"T_{client}")
         visits[client] = var
 
     return visits
@@ -117,7 +120,17 @@ def create_vehicle_visit_variables(model, data):
     vvisits = {}
 
     for vehicle, location in product(data.vehicles, data.locations):
-        var = model.interval_var(name=f"T_{vehicle}_{location}", optional=True)
+        name = f"T_{vehicle}_{location}"
+
+        # TODO does it matter where we set the (v)visit parameters?
+        service_time = data.service_time[location]
+        var = model.interval_var(name=name, optional=True, size=service_time)
+
+        # Set time window constraints on visit variables
+        tw_early, tw_late = data.time_windows[location]
+        var.set_start_min(tw_early)
+        var.set_end_max(tw_late + service_time)
+
         vvisits[(vehicle, location)] = var
 
     return vvisits
@@ -230,7 +243,7 @@ if __name__ == "__main__":
 
     model = vehicle_routing_problem_time_windows(data)
     result = model.solve(
-        TimeLimit=50,
+        TimeLimit=1000,
         LogVerbosity="Terse",
     )
 
