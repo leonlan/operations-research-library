@@ -266,7 +266,7 @@ if __name__ == "__main__":
 
     model = vehicle_routing_problem_time_windows(data)
     result = model.solve(
-        TimeLimit=1000,
+        TimeLimit=10,
         LogVerbosity="Terse",
     )
 
@@ -279,9 +279,12 @@ if __name__ == "__main__":
             for interval in result.get_var_solution(
                 f"R_{vehicle}"
             ).get_interval_variables():
-                route.append(interval.get_name())
+                name = interval.get_name()
+                client = int(name.split("_")[2])
+                route.append(client)
 
-            solution.append(route)
+            if clients := route[1:-1]:  # ignore depots
+                solution.append(clients)
 
         return solution
 
