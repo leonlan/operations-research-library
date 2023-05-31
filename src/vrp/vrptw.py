@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from itertools import product
-from typing import Dict
+from typing import Dict, List
 
 import docplex.cp.model as docp
 import numpy as np
@@ -265,28 +265,33 @@ if __name__ == "__main__":
     data = instance2data(instance)
 
     model = vehicle_routing_problem_time_windows(data)
-    result = model.solve(
-        TimeLimit=10,
-        LogVerbosity="Terse",
-    )
+    result = model.solve(TimeLimit=10, LogVerbosity="Terse")
 
-    def result2solution(result):
+    def result2solution(result) -> List[List[int]]:
+        """
+        Converts the result of the model to a routing solution. This is a list
+        of lists, where each list represents the clients visited by a vehicle.
+        Depots are ignored, as well as empty routes.
+        """
+
+        def route2visits(route):
+            visits = []
+
+            for interval in route.get_interval_variables():
+                location = int(interval.get_name().split("_")[2])
+
+                if 0 < location < data.num_locations - 1:  # ignore depots
+                    visits.append(location)
+
+            return visits
+
         solution = []
 
         for vehicle in data.vehicles:
-            route = []
+            route = result.get_var_solution(f"R_{vehicle}")
+            solution.append(route2visits(route))
 
-            for interval in result.get_var_solution(
-                f"R_{vehicle}"
-            ).get_interval_variables():
-                name = interval.get_name()
-                client = int(name.split("_")[2])
-                route.append(client)
-
-            if clients := route[1:-1]:  # ignore depots
-                solution.append(clients)
-
-        return solution
+        return [rte for rte in solution if rte]  # ignore empty routes
 
     solution = result2solution(result)
     print(solution)
