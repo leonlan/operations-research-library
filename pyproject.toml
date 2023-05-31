@@ -16,9 +16,9 @@ gurobipy = "^10.0.1"
 ortools = "^9.6.2534"
 matplotlib = "^3.7.1"
 tqdm = "^4.65.0"
+
+[tool.poetry.group.vrp.dependencies]
 vrplib = "^1.1.0"
-
-
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.3"
