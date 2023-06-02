@@ -12,6 +12,11 @@ The graph coloring problem can now be formulated as the following optimization p
 \end{align}
 
 
+## Constraint programming
+
+::: src.coloring.cp
+
+
 ## Background information
 
 TODO
