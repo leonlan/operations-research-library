@@ -9,6 +9,7 @@ nav:
     - About: about.md
     - Models: models.md
     - Notes: notes.md
+    - Graph coloring: coloring.md
 
 theme:
   name: material
