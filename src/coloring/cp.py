@@ -1,5 +1,6 @@
 import docplex.cp.model as docp
 from ProblemData import ProblemData
+from utils import maximum_degree
 
 
 def cp(data: ProblemData):
@@ -12,9 +13,11 @@ def cp(data: ProblemData):
         model.integer_var(0, data.num_nodes - 1, name=f"C_{i}")
         for i in data.nodes
     ]
+    model.minimize(model.max(colors))
+
     different_colors_adjacent_nodes(data, model, colors)
 
-    model.minimize(model.max(colors))
+    greedy_coloring_upper_bound(data, model, colors)
 
     return model
 
@@ -32,3 +35,15 @@ def different_colors_adjacent_nodes(data, model, colors):
     for i in data.nodes:
         cons = model.all_diff([colors[j] for j in data.adjacency_list[i]])
         model.add(cons)
+
+
+def greedy_coloring_upper_bound(data, model, colors):
+    """
+    An upper bound for the number of colors is the maximum degree of the graph
+    plus one.
+
+    \\begin{equation}
+        \\max_{i \\in V} C_i \\leq \\Delta(G) + 1
+    \\end{equation}
+    """
+    model.add(model.max(colors) <= maximum_degree(data) + 1)
