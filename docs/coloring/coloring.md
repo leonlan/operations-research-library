@@ -15,10 +15,6 @@ The graph coloring problem is NP-complete and knows many theoretical results tha
 
 TODO find reference
 
-## Constraint programming
-
-::: src.coloring.cp
-
 
 ## Background information
 
