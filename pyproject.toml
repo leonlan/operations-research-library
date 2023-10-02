@@ -11,16 +11,23 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.9, <3.12"
-docplex = "^2.25.236"
 numpy = "^1.24.2"
-gurobipy = "^10.0.1"
-ortools = "^9.6.2534"
 matplotlib = "^3.7.1"
 tqdm = "^4.65.0"
 
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.2.2"
+pytest = "^7.4.2"
+
+
+[tool.poetry.group.scheduling]
+optional = true
+
+[tool.poetry.group.scheduling.dependencies]
+docplex = "^2.25.236"
+gurobipy = "^10.0.1"
+
 
 
 [tool.poetry.group.docs.dependencies]
