@@ -9,7 +9,6 @@ nav:
     - About: about.md
     - 'Models':
         - Distributed flow shop: models/distributed-flow-shop.md
-        - Storage layers: models/storage-layer.md
     - Notes: notes.md
 
 theme:
