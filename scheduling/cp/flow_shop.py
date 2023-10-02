@@ -1,6 +1,6 @@
 import docplex.cp.model as docp
 
-from src.ProblemData import ProblemData
+from scheduling.ProblemData import ProblemData
 
 from .constraints import (
     create_sequence_variables,

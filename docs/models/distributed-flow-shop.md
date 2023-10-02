@@ -13,4 +13,4 @@ The following problem characteristics are also included:
 - sequence-dependent setup times
 - line eligibility constraints
 
-::: src.cp.distributed_flow_shop
+::: scheduling.cp.distributed_flow_shop

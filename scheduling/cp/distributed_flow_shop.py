@@ -2,7 +2,7 @@ from itertools import product
 
 import docplex.cp.model as docp
 
-from src.ProblemData import ProblemData
+from scheduling.ProblemData import ProblemData
 
 
 def distributed_flow_shop(data: ProblemData) -> docp.CpoModel:

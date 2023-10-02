@@ -19,7 +19,7 @@ theme:
     repo: fontawesome/brands/github
 
 watch:
-- src/
+- scheduling/
 
 plugins:
   - mkdocstrings:

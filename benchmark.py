@@ -8,11 +8,11 @@ from typing import List, Union
 import numpy as np
 from tqdm.contrib.concurrent import process_map
 
-import src
-import src.plotting
-from src.constants import ProblemType
-from src.cp import CP_MODELS
-from src.ProblemData import ProblemData
+import scheduling
+import scheduling.plotting
+from scheduling.constants import ProblemType
+from scheduling.cp import CP_MODELS
+from scheduling.ProblemData import ProblemData
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
     msg = "Scheduling problem type."
     parser.add_argument("--problem_type", type=ProblemType, help=msg)
 
-    msg = "Time limit for the constriant programming solver in seconds."
+    msg = "Time limit for the constraint programming solver in seconds."
     parser.add_argument("--time_limit", type=int, help=msg)
 
     msg = "Number of instances to solve in parallel."
@@ -121,15 +121,14 @@ def benchmark(instances: List[str], **kwargs):
 
 
 def plot(data, result, problem_type, fname):
-    print(fname)
     if problem_type == "unrelated_parallel_machines":
-        src.plotting.upmresult2plot(data, result, fname)
+        scheduling.plotting.upmresult2plot(data, result, fname)
 
     if problem_type == "hybrid_flow_shop":
-        src.plotting.hfsresult2plot(data, result, fname)
+        scheduling.plotting.hfsresult2plot(data, result, fname)
 
     if problem_type == "distributed_flow_shop":
-        src.plotting.dpfsresult2plot(data, result, fname)
+        scheduling.plotting.dpfsresult2plot(data, result, fname)
 
 
 def maybe_mkdir(where: str):
